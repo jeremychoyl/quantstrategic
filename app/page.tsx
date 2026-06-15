@@ -4,8 +4,8 @@ import { DashboardData } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import ReturnsHero from "@/components/ReturnsHero"
-import EquityCurve from "@/components/EquityCurve"
-import PnLBar from "@/components/PnLBar"
+import EquityCurveClient from "@/components/EquityCurveClient"
+import PnLBarClient from "@/components/PnLBarClient"
 import StatsGrid from "@/components/StatsGrid"
 import Positions from "@/components/Positions"
 import ShareCard from "@/components/ShareCard"
@@ -74,7 +74,7 @@ export default function Overview() {
                 <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
                   Backtest · Jan 2026 → present · cumulative P&L ($)
                 </p>
-                <EquityCurve data={data.oos_equity_curve} />
+                <EquityCurveClient data={data.oos_equity_curve} />
               </div>
 
               <div className="rounded-xl p-5"
@@ -83,7 +83,7 @@ export default function Overview() {
                 <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
                   Actual demo fills · points per day
                 </p>
-                <PnLBar data={data.last_7_days} />
+                <PnLBarClient data={data.last_7_days} />
               </div>
             </div>
 
