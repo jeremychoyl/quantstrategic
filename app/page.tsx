@@ -24,8 +24,9 @@ export default function Overview() {
 
   useEffect(() => {
     load()
-    const id = setInterval(load, 60_000)
-    return () => clearInterval(id)
+    const id  = setInterval(load, 60_000)
+    const t   = setTimeout(() => setLoading(false), 10_000)
+    return () => { clearInterval(id); clearTimeout(t) }
   }, [load])
 
   return (
