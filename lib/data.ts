@@ -5,7 +5,8 @@ const DATA_URL =
 
 export async function fetchDashboard(): Promise<DashboardData | null> {
   try {
-    const res = await fetch(DATA_URL, { next: { revalidate: 0 }, cache: "no-store" })
+    const url = `${DATA_URL}?t=${Date.now()}`
+    const res = await fetch(url, { cache: "no-store" })
     if (!res.ok) return null
     return res.json()
   } catch {
