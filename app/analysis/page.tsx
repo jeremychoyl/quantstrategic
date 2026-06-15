@@ -63,28 +63,90 @@ function rebase(data: EquityPoint[], capital: number): EquityPoint[] {
   return data.map(d => ({ ...d, combined_pct: (d.combined / capital) * 100 }))
 }
 
-function StatPill({ label, value, color }: { label: string; value: string; color?: string }) {
+// ── star rating system ────────────────────────────────────────────────────────
+
+interface Rating { stars: number; label: string }
+
+function rateMetric(metric: "pf" | "sharpe" | "maxdd" | "winpct", value: number, capital = 25000): Rating {
+  switch (metric) {
+    case "pf":
+      // industry: >2.5 elite, >1.8 very strong, >1.3 solid, >1.0 marginal, <1 losing
+      if (value >= 2.5) return { stars: 5, label: "Excellent" }
+      if (value >= 1.8) return { stars: 4, label: "Strong" }
+      if (value >= 1.3) return { stars: 3, label: "Solid" }
+      if (value >= 1.0) return { stars: 2, label: "Marginal" }
+      return { stars: 1, label: "Poor" }
+
+    case "sharpe":
+      // industry: >3 elite, >2 very good, >1.5 good, >1.0 acceptable, <1 weak
+      if (value >= 3.0) return { stars: 5, label: "Excellent" }
+      if (value >= 2.0) return { stars: 4, label: "Strong" }
+      if (value >= 1.5) return { stars: 3, label: "Solid" }
+      if (value >= 1.0) return { stars: 2, label: "Marginal" }
+      return { stars: 1, label: "Poor" }
+
+    case "maxdd": {
+      // lower is better; rated as % of capital
+      const pct = (value / capital) * 100
+      if (pct < 5)  return { stars: 5, label: "Excellent" }
+      if (pct < 10) return { stars: 4, label: "Strong" }
+      if (pct < 15) return { stars: 3, label: "Acceptable" }
+      if (pct < 25) return { stars: 2, label: "Elevated" }
+      return { stars: 1, label: "High" }
+    }
+
+    case "winpct":
+      // in context of trend-following: >60 rare, >55 strong, >50 solid, >45 ok, <45 low
+      if (value >= 60) return { stars: 5, label: "Excellent" }
+      if (value >= 55) return { stars: 4, label: "Strong" }
+      if (value >= 50) return { stars: 3, label: "Solid" }
+      if (value >= 45) return { stars: 2, label: "Marginal" }
+      return { stars: 1, label: "Low" }
+  }
+}
+
+function StarRow({ rating }: { rating: Rating }) {
   return (
-    <div className="rounded-lg px-4 py-3 flex flex-col gap-0.5"
-         style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
-      <span className="text-xs" style={{ color: "var(--muted)" }}>{label}</span>
-      <span className="text-sm font-black" style={{ color: color ?? "var(--text)" }}>{value}</span>
+    <div className="flex items-center gap-1 mt-1">
+      <span className="text-sm leading-none tracking-tighter">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} style={{ color: i < rating.stars ? "#FBBF24" : "#374151" }}>★</span>
+        ))}
+      </span>
+      <span className="text-xs" style={{ color: "var(--muted)" }}>{rating.label}</span>
     </div>
   )
 }
 
-function ComboStats({ stats }: { stats: PortfolioStats | undefined }) {
+function StatPill({ label, value, color, rating }: {
+  label: string; value: string; color?: string; rating?: Rating
+}) {
+  return (
+    <div className="rounded-lg px-4 py-3 flex flex-col"
+         style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+      <span className="text-xs" style={{ color: "var(--muted)" }}>{label}</span>
+      <span className="text-sm font-black mt-0.5" style={{ color: color ?? "var(--text)" }}>{value}</span>
+      {rating && <StarRow rating={rating} />}
+    </div>
+  )
+}
+
+function ComboStats({ stats, capital }: { stats: PortfolioStats | undefined; capital: number }) {
   if (!stats) return null
   const dd = stats.max_dd_usd
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-4">
       <StatPill label="Profit Factor" value={stats.pf?.toFixed(2) ?? "—"}
-                color={stats.pf >= 1.5 ? "var(--up)" : stats.pf >= 1.0 ? "#f59e0b" : "var(--down)"} />
+                color={stats.pf >= 1.5 ? "var(--up)" : stats.pf >= 1.0 ? "#f59e0b" : "var(--down)"}
+                rating={rateMetric("pf", stats.pf ?? 0)} />
       <StatPill label="Sharpe" value={stats.sharpe?.toFixed(2) ?? "—"}
-                color={stats.sharpe >= 2 ? "var(--up)" : stats.sharpe >= 1 ? "#f59e0b" : "var(--down)"} />
+                color={stats.sharpe >= 2 ? "var(--up)" : stats.sharpe >= 1 ? "#f59e0b" : "var(--down)"}
+                rating={rateMetric("sharpe", stats.sharpe ?? 0)} />
       <StatPill label="Max DD" value={`-$${Math.abs(dd).toLocaleString()}`}
-                color="var(--down)" />
-      <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`} />
+                color="var(--down)"
+                rating={rateMetric("maxdd", Math.abs(dd), capital)} />
+      <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`}
+                rating={rateMetric("winpct", stats.win_pct ?? 0)} />
       <StatPill label="Total pts" value={`+${stats.total_pts?.toFixed(1)}`}
                 color={(stats.total_pts ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
       <StatPill label="Total $" value={`+$${stats.total_usd?.toLocaleString()}`}
@@ -224,7 +286,7 @@ export default function Analysis() {
           </div>
 
           {/* stats pills */}
-          <ComboStats stats={stats} />
+          <ComboStats stats={stats} capital={cap} />
 
           {/* chart */}
           {rebased.length > 0 ? (
