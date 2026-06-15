@@ -1,17 +1,17 @@
 import { DashboardData } from "./types"
 
-const DATA_URL =
-  "https://raw.githubusercontent.com/jeremychoyl/quantstrategic-data/main/dashboard.json"
-
 export async function fetchDashboard(): Promise<DashboardData | null> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 8000)
   try {
-    const url = `${DATA_URL}?t=${Date.now()}`
-    const res = await fetch(url, { signal: controller.signal })
+    const res = await fetch(`/api/dashboard?t=${Date.now()}`, {
+      signal: controller.signal,
+    })
     clearTimeout(timer)
     if (!res.ok) return null
-    return res.json()
+    const data = await res.json()
+    if (data.error) return null
+    return data
   } catch {
     clearTimeout(timer)
     return null
