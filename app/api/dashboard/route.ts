@@ -7,9 +7,7 @@ export const revalidate = 60
 
 export async function GET() {
   try {
-    const res = await fetch(DATA_URL, {
-      next: { revalidate: 60 },
-    })
+    const res = await fetch(DATA_URL, { cache: "no-store" })
     if (!res.ok) {
       return NextResponse.json({ error: "upstream failed" }, { status: 502 })
     }
