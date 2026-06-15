@@ -2,6 +2,7 @@ export interface EquityPoint {
   date: string
   ema: number
   orb: number
+  overnight: number
   combined: number
   combined_pct?: number
 }
@@ -50,6 +51,7 @@ export interface Strategy {
   name: string
   status: string
   in_portfolio: boolean
+  combo_key: string
   description: string
   params: StrategyParams
 }
@@ -64,4 +66,5 @@ export interface DashboardData {
   active_positions: Position[]
   net_returns: NetReturns
   strategies: Record<string, Strategy>
+  combo_stats: Record<string, PortfolioStats>
 }

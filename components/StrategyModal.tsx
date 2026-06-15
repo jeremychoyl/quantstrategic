@@ -2,21 +2,26 @@
 import { Strategy } from "@/lib/types"
 import { useState } from "react"
 
+const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; border: string }> = {
+  active:  { bg: "#1a2a24", color: "var(--up)",   label: "● ACTIVE",  border: "var(--accent)" },
+  shelved: { bg: "#2a2212", color: "#f59e0b",       label: "⏸ SHELVED", border: "#78350f" },
+  default: { bg: "#1e1e2e", color: "var(--muted)",  label: "INACTIVE",  border: "var(--border)" },
+}
+
 export default function StrategyCard({ strat, data }: { strat: string; data: Strategy }) {
   const [open, setOpen] = useState(false)
-  const active = data.in_portfolio
+  const s = STATUS_STYLE[data.status] ?? STATUS_STYLE.default
 
   return (
     <>
       <button onClick={() => setOpen(true)}
               className="rounded-xl p-5 text-left w-full transition-all hover:scale-[1.01]"
-              style={{ background: "var(--surface)", border: `1px solid ${active ? "var(--accent)" : "var(--border)"}` }}>
+              style={{ background: "var(--surface)", border: `1px solid ${s.border}` }}>
         <div className="flex items-center justify-between mb-2">
           <span className="font-black text-base">{data.name}</span>
           <span className="text-xs font-bold px-2 py-0.5 rounded"
-                style={{ background: active ? "#1a2a24" : "#1e1e2e",
-                         color: active ? "var(--up)" : "var(--muted)" }}>
-            {active ? "● ACTIVE" : "INACTIVE"}
+                style={{ background: s.bg, color: s.color }}>
+            {s.label}
           </span>
         </div>
         <p className="text-sm" style={{ color: "var(--text2)" }}>{data.description}</p>
