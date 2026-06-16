@@ -68,7 +68,7 @@ export default function StatsGrid({ stats, capital = 25000 }: { stats: Portfolio
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       <Stat label="Profit Factor" value={stats.pf.toFixed(2)}
             rating={rate("pf", stats.pf)}
-            sub="2026 OOS · both strategies" />
+            sub="2026 OOS · all strategies" />
       <Stat label="Sharpe Ratio" value={stats.sharpe.toFixed(2)}
             rating={rate("sharpe", stats.sharpe)}
             sub="annualised · combined" />

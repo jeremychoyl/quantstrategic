@@ -97,4 +97,9 @@ export const MILESTONES: Milestone[] = [
     title: "Live readiness",
     items: ["/bridgestatus: mode, feed age, last 10 signals, daily counts", "go_live_switch.py: reads verdict → patches BRIDGE_MODE=live → verifies auth", "week2_push.py: June 23 final pulse with early verdict prediction", "QuantStrategic dashboard initiated"],
   },
+  {
+    week: "W63", date: "2026-06-16", category: "research",
+    title: "DC Mean Reversion — 3rd strategy",
+    items: ["Donchian Channel daily mean reversion: close < prior 10-day low → long next open", "Exit3: first daily close > signal-close; 5-day time stop", "OOS walkforward (3y→1y, 14 years): PF 2.76, Sharpe 1.14, 0 sit-out years", "Corr vs ORB +0.05, vs EMA −0.01 — genuinely uncorrelated diversifier", "dc_signal.py: nightly signal file for bridge entry at 09:30–09:40 ET", "bridge.py: DC strategy dispatch + 9-day stale-position purge threshold", "QuantStrategic command centre + PineScript mirror updated to include DC"],
+  },
 ]

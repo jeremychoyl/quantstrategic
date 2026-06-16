@@ -58,7 +58,7 @@ export default function Overview() {
               <div>
                 <h1 className="text-xl font-black tracking-tight">Overview</h1>
                 <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                  Demo since {data.demo_since} · 1 MNQ per strategy
+                  Demo since {data.demo_since} · 3 strategies · 1 MNQ each
                 </p>
               </div>
               <ShareCard data={data} />

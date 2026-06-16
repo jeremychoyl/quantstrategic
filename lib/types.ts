@@ -4,6 +4,7 @@ export interface EquityPoint {
   orb: number
   overnight: number
   combined: number
+  dc?: number
   combined_pct?: number
 }
 

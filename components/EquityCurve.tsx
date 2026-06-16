@@ -36,6 +36,8 @@ export default function EquityCurve({ data }: { data: EquityPoint[] }) {
               strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
         <Line type="monotone" dataKey="orb" name="ORB 30m" stroke="#f59e0b"
               strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
+        <Line type="monotone" dataKey="dc" name="DC MeanRev" stroke="#38bdf8"
+              strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
       </LineChart>
     </ResponsiveContainer>
   )
