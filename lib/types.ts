@@ -84,6 +84,15 @@ export interface StrategyBacktestStats {
   profit_factor: number
   n_trades: number
   win_pct: number
+  sharpe: number
+  sortino: number
+  calmar: number
+  cagr_pct: number
+  monthly_mean_usd: number
+  monthly_std_usd: number
+  monthly_win_rate: number
+  payoff_ratio: number
+  max_consec_losses: number
 }
 
 export interface DashboardData {

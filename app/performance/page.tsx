@@ -5,82 +5,147 @@ import { DashboardData, StrategyPerfDetail, StrategyBacktestStats, MonthlyPoint 
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 
-// Chart components — recharts must not SSR
 const PerfEquityChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.PerfEquityChart })),
-  { ssr: false, loading: () => <Skeleton h={220} /> }
+  { ssr: false, loading: () => <Skel h={220} /> }
 )
 const YearlyBarChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.YearlyBarChart })),
-  { ssr: false, loading: () => <Skeleton h={200} /> }
+  { ssr: false, loading: () => <Skel h={200} /> }
 )
 const WinLossPie = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.WinLossPie })),
   { ssr: false }
 )
 
-// ── helpers ───────────────────────────────────────────────────────────────────
-
-function Skeleton({ h }: { h: number }) {
-  return <div className="animate-pulse rounded" style={{ height: h, background: "var(--surface2)" }} />
-}
+// ── constants ─────────────────────────────────────────────────────────────────
 
 const UP   = "#00d4aa"
 const DOWN = "#ff4d6d"
-
-function fmt$(v: number, sign = false): string {
-  const abs = Math.abs(v)
-  const s   = v < 0 ? "−" : sign && v > 0 ? "+" : ""
-  return `${s}$${abs.toLocaleString()}`
-}
-
-// ── strategy config ───────────────────────────────────────────────────────────
+const WARN = "#f59e0b"
+const CAPITAL = 22_000
 
 const STRATS = [
-  { key: "ema", label: "EMA Cross 5m",    note: null },
-  { key: "dc",  label: "DC Mean Rev",     note: null },
-  { key: "orb", label: "ORB 30m",         note: "Edge confirmed post-2021 · pre-2021 era (known weakness) included in 16y totals" },
+  { key: "ema", label: "EMA Cross 5m",  note: null },
+  { key: "dc",  label: "DC Mean Rev",   note: null },
+  { key: "orb", label: "ORB 30m",       note: "Edge confirmed post-2021. Pre-2021 period (PF ~0.79) is included in the 16y totals — the walkforward gate correctly sits it out in live trading." },
 ] as const
-
 type StratKey = typeof STRATS[number]["key"]
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+function Skel({ h }: { h: number }) {
+  return <div className="animate-pulse rounded" style={{ height: h, background: "var(--surface2)" }} />
+}
+
+const fmt$ = (v: number, sign = false) => {
+  const s = v < 0 ? "−" : sign && v > 0 ? "+" : ""
+  return `${s}$${Math.abs(Math.round(v)).toLocaleString()}`
+}
+
+function monthsElapsed(since: string): number {
+  const s = new Date(since)
+  const now = new Date()
+  return Math.max(
+    (now.getFullYear() - s.getFullYear()) * 12 + (now.getMonth() - s.getMonth()) + now.getDate() / 30,
+    0.1
+  )
+}
+
+type DriftStatus = "on_track" | "below" | "underperforming"
+
+function driftStatus(current: number, mean: number, std: number): DriftStatus {
+  if (current >= mean - std)      return "on_track"
+  if (current >= mean - 2 * std)  return "below"
+  return "underperforming"
+}
+
+const DRIFT_STYLE: Record<DriftStatus, { bg: string; border: string; color: string; label: string; icon: string }> = {
+  on_track:       { bg: "#0a1a12", border: "#1a3020", color: "#86efac", label: "On track",          icon: "✅" },
+  below:          { bg: "#1a1500", border: "#3a2a0a", color: WARN,      label: "Below expectation", icon: "⚠️" },
+  underperforming:{ bg: "#1a0a0a", border: "#3a1010", color: DOWN,      label: "Underperforming",   icon: "🔴" },
+}
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
-function KeyStat({
-  label, value, sub, color, last,
-}: { label: string; value: string; sub?: string; color?: string; last?: boolean }) {
+function KStat({
+  label, value, sub, color, last, dim,
+}: { label: string; value: string; sub?: string; color?: string; last?: boolean; dim?: boolean }) {
   return (
-    <div className="p-5 flex flex-col gap-1"
-         style={{ borderRight: last ? "none" : "1px solid var(--border)" }}>
+    <div className="p-4 flex flex-col gap-1"
+         style={{ borderRight: last ? "none" : "1px solid var(--border)", opacity: dim ? 0.55 : 1 }}>
       <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>
         {label}
       </p>
-      <p className="text-2xl font-bold" style={{ color: color ?? "var(--text)" }}>{value}</p>
+      <p className="text-xl font-bold tabular-nums" style={{ color: color ?? "var(--text)" }}>{value}</p>
       {sub && <p className="text-xs" style={{ color: "var(--muted)" }}>{sub}</p>}
     </div>
   )
 }
 
-function MRow({
-  label, value, color,
-}: { label: string; value: string; color?: string }) {
+function MRow({ label, value, color, note }: { label: string; value: string; color?: string; note?: string }) {
   return (
     <div className="flex justify-between items-center py-2"
          style={{ borderBottom: "1px solid var(--border)" }}>
-      <span className="text-xs" style={{ color: "var(--muted)" }}>{label}</span>
+      <span className="text-xs" style={{ color: "var(--muted)" }}>
+        {label}{note && <span className="ml-1 text-[10px]" style={{ color: "var(--muted)", opacity: 0.6 }}>({note})</span>}
+      </span>
       <span className="text-sm font-bold tabular-nums" style={{ color: color ?? "var(--text)" }}>{value}</span>
     </div>
   )
 }
 
-function SectionCard({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
+function Card({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl p-5"
-         style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-      <h2 className="text-sm font-bold mb-1">{title}</h2>
-      {sub && <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>{sub}</p>}
+    <div className="rounded-xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <h2 className="text-sm font-bold">{title}</h2>
+      {sub && <p className="text-xs mt-0.5 mb-4" style={{ color: "var(--muted)" }}>{sub}</p>}
       {!sub && <div className="mb-4" />}
       {children}
+    </div>
+  )
+}
+
+// ── Variance / drift indicator ────────────────────────────────────────────────
+
+function VarianceCard({
+  bts, ytdTotalUsd, generatedAt,
+}: { bts: StrategyBacktestStats; ytdTotalUsd: number; generatedAt: string }) {
+  const n     = monthsElapsed("2026-01-01")
+  const curr  = ytdTotalUsd > 0 ? ytdTotalUsd / n : null
+  const mean  = bts.monthly_mean_usd
+  const std   = bts.monthly_std_usd
+  const status: DriftStatus = curr !== null ? driftStatus(curr, mean, std) : "on_track"
+  const st    = DRIFT_STYLE[status]
+
+  return (
+    <div className="rounded-xl px-5 py-4"
+         style={{ background: st.bg, border: `1px solid ${st.border}` }}>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: st.color }}>
+            {st.icon} Strategy Variance · {st.label}
+          </p>
+          <p className="text-xs" style={{ color: st.color, opacity: 0.8 }}>
+            Historical baseline (16y): {fmt$(mean, true)} ± {fmt$(std)} / month
+            {" "}· 1σ range [{fmt$(mean - std)}, {fmt$(mean + std, true)}]
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          {curr !== null ? (
+            <>
+              <p className="text-lg font-bold tabular-nums" style={{ color: st.color }}>
+                {fmt$(curr, true)} / month
+              </p>
+              <p className="text-xs" style={{ color: st.color, opacity: 0.7 }}>
+                2026 YTD · {n.toFixed(1)} months
+              </p>
+            </>
+          ) : (
+            <p className="text-xs" style={{ color: st.color, opacity: 0.7 }}>No 2026 trades yet</p>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -104,7 +169,8 @@ export default function Performance() {
 
   const bts:    StrategyBacktestStats | undefined = data?.strategy_backtest_stats?.[active]
   const detail: StrategyPerfDetail   | undefined = data?.performance_detail?.[active]
-  const note = STRATS.find(s => s.key === active)?.note
+  const ytdUsd  = data?.combo_stats?.[active]?.total_usd ?? 0
+  const note    = STRATS.find(s => s.key === active)?.note
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -117,21 +183,18 @@ export default function Performance() {
           <div>
             <h1 className="text-xl font-black tracking-tight">Performance</h1>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-              Full 16-year backtest · 2010–2026 · 1 MNQ · costs 1.24 pts RT
+              Full 16-year backtest · 2010–2026 · 1 MNQ · 1.24 pts cost RT
             </p>
           </div>
           <div className="flex gap-1.5">
             {STRATS.map(s => (
-              <button
-                key={s.key}
-                onClick={() => setActive(s.key)}
-                className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-                style={{
-                  background: active === s.key ? "var(--accent2)" : "var(--surface)",
-                  color:      active === s.key ? "#fff" : "var(--text2)",
-                  border:     "1px solid var(--border)",
-                }}
-              >
+              <button key={s.key} onClick={() => setActive(s.key)}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+                      style={{
+                        background: active === s.key ? "var(--accent2)" : "var(--surface)",
+                        color:      active === s.key ? "#fff" : "var(--text2)",
+                        border:     "1px solid var(--border)",
+                      }}>
                 {s.label}
               </button>
             ))}
@@ -140,12 +203,8 @@ export default function Performance() {
 
         {!data && (
           <div className="space-y-4">
-            <Skeleton h={96} />
-            <Skeleton h={260} />
-            <div className="grid grid-cols-2 gap-4">
-              <Skeleton h={280} />
-              <Skeleton h={280} />
-            </div>
+            <Skel h={96} /><Skel h={48} /><Skel h={260} />
+            <div className="grid grid-cols-2 gap-4"><Skel h={280} /><Skel h={280} /></div>
           </div>
         )}
 
@@ -153,153 +212,130 @@ export default function Performance() {
           <div className="rounded-xl p-10 text-center"
                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <p className="text-sm" style={{ color: "var(--muted)" }}>
-              Performance detail not in dashboard yet — run dashboard push to populate
+              Performance detail not yet available — run dashboard push to populate
             </p>
           </div>
         )}
 
         {data && bts && detail && (
           <>
-            {/* Key stats bar */}
+            {/* ── Row 1: return metrics ─────────────────────────── */}
             <div className="rounded-xl overflow-hidden"
                  style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="grid grid-cols-2 sm:grid-cols-4"
+                   style={{ borderBottom: "1px solid var(--border)" }}>
+                <KStat label="Net P&L (16y)"
+                       value={fmt$(detail.total_net_usd, true)}
+                       sub={`${bts.n_trades.toLocaleString()} trades`}
+                       color={detail.total_net_usd >= 0 ? UP : DOWN} />
+                <KStat label="Max Drawdown"
+                       value={fmt$(bts.max_dd_usd)}
+                       sub={`${((bts.max_dd_usd / CAPITAL) * 100).toFixed(1)}% of $${(CAPITAL/1000).toFixed(0)}k`}
+                       color={DOWN} />
+                <KStat label="Win Rate"
+                       value={`${bts.win_pct.toFixed(1)}%`}
+                       sub={`${detail.n_winners.toLocaleString()}W · ${detail.n_losers.toLocaleString()}L`} />
+                <KStat label="Profit Factor"
+                       value={bts.profit_factor.toFixed(2)}
+                       color={bts.profit_factor >= 2 ? UP : bts.profit_factor >= 1.3 ? "var(--text)" : DOWN}
+                       last />
+              </div>
+
+              {/* ── Row 2: risk-adjusted ──────────────────────────── */}
               <div className="grid grid-cols-2 sm:grid-cols-4">
-                <KeyStat
-                  label="Net P&L"
-                  value={fmt$(detail.total_net_usd, true)}
-                  sub={`${bts.n_trades.toLocaleString()} trades · 16y`}
-                  color={detail.total_net_usd >= 0 ? UP : DOWN}
-                />
-                <KeyStat
-                  label="Max Drawdown"
-                  value={fmt$(bts.max_dd_usd)}
-                  sub={`${((bts.max_dd_usd / 22000) * 100).toFixed(1)}% of $22k capital`}
-                  color={DOWN}
-                />
-                <KeyStat
-                  label="Win Rate"
-                  value={`${bts.win_pct.toFixed(1)}%`}
-                  sub={`${detail.n_winners.toLocaleString()}W · ${detail.n_losers.toLocaleString()}L`}
-                />
-                <KeyStat
-                  label="Profit Factor"
-                  value={bts.profit_factor.toFixed(2)}
-                  sub={`expectancy ${fmt$(bts.expectancy_usd, true)} / trade`}
-                  color={bts.profit_factor >= 1.5 ? UP : bts.profit_factor >= 1.0 ? "var(--text)" : DOWN}
-                  last
-                />
+                <KStat label="Sharpe"
+                       value={bts.sharpe.toFixed(2)}
+                       sub="annualised · daily"
+                       color={bts.sharpe >= 1.5 ? UP : bts.sharpe >= 1.0 ? "var(--text)" : "var(--muted)"} />
+                <KStat label="Sortino"
+                       value={bts.sortino.toFixed(2)}
+                       sub="downside deviation"
+                       color={bts.sortino >= 2.0 ? UP : bts.sortino >= 1.0 ? "var(--text)" : "var(--muted)"} />
+                <KStat label="Calmar"
+                       value={bts.calmar.toFixed(2)}
+                       sub="CAGR ÷ max DD"
+                       color={bts.calmar >= 0.5 ? UP : "var(--text)"} />
+                <KStat label="CAGR"
+                       value={`${bts.cagr_pct.toFixed(1)}%`}
+                       sub={`on $${(CAPITAL/1000).toFixed(0)}k capital · 16y`}
+                       color={bts.cagr_pct >= 10 ? UP : "var(--text)"}
+                       last />
               </div>
             </div>
 
-            {/* 16y equity curve */}
-            <SectionCard
-              title="16-Year Equity Curve"
-              sub="Monthly cumulative P&L · 2010–2026 · 1 MNQ"
-            >
-              <PerfEquityChart data={detail.monthly} />
-            </SectionCard>
+            {/* ── Variance / drift indicator ────────────────────── */}
+            <VarianceCard bts={bts} ytdTotalUsd={ytdUsd} generatedAt={data.generated_at} />
 
-            {/* Trade analysis + annual P&L */}
+            {/* ── 16y equity curve ──────────────────────────────── */}
+            <Card title="16-Year Equity Curve" sub="Monthly cumulative P&L · 2010–2026 · 1 MNQ">
+              <PerfEquityChart data={detail.monthly} />
+            </Card>
+
+            {/* ── Trade analysis + annual P&L ───────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Trade analysis */}
-              <SectionCard title="Trade Analysis" sub="">
-                {/* Win/loss donut + legend */}
+              <Card title="Trade Analysis" sub="">
                 <div className="flex items-center gap-5 mb-5">
-                  <WinLossPie
-                    n_winners={detail.n_winners}
-                    n_losers={detail.n_losers}
-                    n_breakeven={detail.n_breakeven}
-                  />
+                  <WinLossPie n_winners={detail.n_winners}
+                              n_losers={detail.n_losers}
+                              n_breakeven={detail.n_breakeven} />
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: UP }} />
-                        <span className="text-xs font-semibold">{detail.n_winners.toLocaleString()} Winners</span>
-                      </div>
-                      <span className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
-                        {bts.win_pct.toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: DOWN }} />
-                        <span className="text-xs font-semibold">{detail.n_losers.toLocaleString()} Losers</span>
-                      </div>
-                      <span className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
-                        {(100 - bts.win_pct).toFixed(1)}%
-                      </span>
-                    </div>
-                    {detail.n_breakeven > 0 && (
-                      <div className="flex items-center justify-between">
+                    {[
+                      { label: "Winners", n: detail.n_winners, pct: bts.win_pct,        color: UP   },
+                      { label: "Losers",  n: detail.n_losers,  pct: 100 - bts.win_pct,  color: DOWN },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ background: "#374151" }} />
-                          <span className="text-xs font-semibold">{detail.n_breakeven} Breakeven</span>
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ background: row.color }} />
+                          <span className="text-xs font-semibold">{row.n.toLocaleString()} {row.label}</span>
                         </div>
+                        <span className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
+                          {row.pct.toFixed(1)}%
+                        </span>
                       </div>
-                    )}
-                    {/* Progress bar */}
-                    <div className="h-1.5 rounded-full overflow-hidden flex mt-3">
-                      <div style={{ width: `${bts.win_pct}%`, background: UP }} />
+                    ))}
+                    <div className="h-1.5 rounded-full overflow-hidden flex mt-2">
+                      <div style={{ width: `${bts.win_pct}%`,       background: UP   }} />
                       <div style={{ width: `${100 - bts.win_pct}%`, background: DOWN }} />
                     </div>
                   </div>
                 </div>
 
-                {/* Metric rows */}
-                <div className="-mt-1">
-                  <MRow
-                    label="Expectancy"
-                    value={`${fmt$(bts.expectancy_usd, true)} / trade (${bts.expectancy_pts > 0 ? "+" : ""}${bts.expectancy_pts.toFixed(1)} pts)`}
-                    color={bts.expectancy_usd >= 0 ? UP : DOWN}
-                  />
-                  <MRow label="Avg winner"      value={fmt$(detail.avg_win_usd, true)}        color={UP}   />
-                  <MRow label="Avg loser"        value={fmt$(detail.avg_loss_usd)}              color={DOWN} />
-                  <MRow label="Largest win"      value={fmt$(detail.largest_win_usd, true)}    color={UP}   />
-                  <MRow label="Largest loss"     value={fmt$(detail.largest_loss_usd)}          color={DOWN} />
-                  <MRow label="Gross profit"     value={fmt$(detail.gross_profit_usd, true)}   color={UP}   />
-                  <MRow label="Gross loss"       value={fmt$(detail.gross_loss_usd)}            color={DOWN} />
-                </div>
-              </SectionCard>
+                <MRow label="Expectancy"
+                      value={`${fmt$(bts.expectancy_usd, true)} / trade (${bts.expectancy_pts > 0 ? "+" : ""}${bts.expectancy_pts.toFixed(1)} pts)`}
+                      color={bts.expectancy_usd >= 0 ? UP : DOWN} />
+                <MRow label="Payoff ratio"     value={bts.payoff_ratio.toFixed(2)}          note="avg win ÷ avg loss" />
+                <MRow label="Avg winner"        value={fmt$(detail.avg_win_usd, true)}       color={UP}   />
+                <MRow label="Avg loser"         value={fmt$(detail.avg_loss_usd)}            color={DOWN} />
+                <MRow label="Largest win"       value={fmt$(detail.largest_win_usd, true)}  color={UP}   />
+                <MRow label="Largest loss"      value={fmt$(detail.largest_loss_usd)}        color={DOWN} />
+                <MRow label="Max consec losses" value={`${bts.max_consec_losses}`}
+                      color={bts.max_consec_losses > 10 ? DOWN : "var(--text)"}
+                      note="streak" />
+                <MRow label="Monthly win rate"  value={`${bts.monthly_win_rate.toFixed(1)}%`}
+                      note="% months profitable" />
+                <MRow label="Monthly avg"       value={fmt$(bts.monthly_mean_usd, true)}    color={bts.monthly_mean_usd >= 0 ? UP : DOWN} />
+                <MRow label="Monthly std dev"   value={`± ${fmt$(bts.monthly_std_usd)}`}
+                      note="return volatility" />
+                <MRow label="Gross profit"      value={fmt$(detail.gross_profit_usd, true)} color={UP}   />
+                <MRow label="Gross loss"        value={fmt$(detail.gross_loss_usd)}          color={DOWN} />
+              </Card>
 
               {/* Annual P&L */}
-              <SectionCard
-                title="Annual P&L"
-                sub="Yearly net · green = profitable year · 1 MNQ"
-              >
+              <Card title="Annual P&L" sub="Yearly net · green = profitable · 1 MNQ">
                 <YearlyBarChart data={detail.monthly} />
-
-                {/* Yearly stats summary */}
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  {[
-                    {
-                      label: "Best year",
-                      value: fmt$(
-                        Math.max(...Object.values(
-                          detail.monthly.reduce<Record<string, number>>((a, m) => {
-                            const y = m.month.slice(0, 4)
-                            a[y] = (a[y] ?? 0) + m.pnl
-                            return a
-                          }, {})
-                        )),
-                        true
-                      ),
-                      color: UP,
-                    },
-                    {
-                      label: "Worst year",
-                      value: fmt$(
-                        Math.min(...Object.values(
-                          detail.monthly.reduce<Record<string, number>>((a, m) => {
-                            const y = m.month.slice(0, 4)
-                            a[y] = (a[y] ?? 0) + m.pnl
-                            return a
-                          }, {})
-                        ))
-                      ),
-                      color: DOWN,
-                    },
-                  ].map(s => (
+                  {(() => {
+                    const by_year = detail.monthly.reduce<Record<string, number>>((a, m) => {
+                      const y = m.month.slice(0, 4); a[y] = (a[y] ?? 0) + m.pnl; return a
+                    }, {})
+                    const vals = Object.values(by_year)
+                    return [
+                      { label: "Best year",  value: fmt$(Math.max(...vals), true), color: UP   },
+                      { label: "Worst year", value: fmt$(Math.min(...vals)),        color: DOWN },
+                    ]
+                  })().map(s => (
                     <div key={s.label} className="rounded-lg p-3"
                          style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
                       <p className="text-xs mb-1" style={{ color: "var(--muted)" }}>{s.label}</p>
@@ -307,13 +343,13 @@ export default function Performance() {
                     </div>
                   ))}
                 </div>
-              </SectionCard>
+              </Card>
             </div>
 
             {/* ORB era note */}
             {note && (
               <div className="rounded-lg px-4 py-3 text-xs"
-                   style={{ background: "#111a14", border: "1px solid #1a3020", color: "#86efac" }}>
+                   style={{ background: "#0a1a10", border: "1px solid #1a3020", color: "#86efac" }}>
                 ⚠ {note}
               </div>
             )}
