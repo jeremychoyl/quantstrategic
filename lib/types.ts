@@ -57,6 +57,26 @@ export interface Strategy {
   params: StrategyParams
 }
 
+export interface MonthlyPoint {
+  month: string
+  pnl: number
+  equity: number
+}
+
+export interface StrategyPerfDetail {
+  n_winners: number
+  n_losers: number
+  n_breakeven: number
+  total_net_usd: number
+  avg_win_usd: number
+  avg_loss_usd: number
+  largest_win_usd: number
+  largest_loss_usd: number
+  gross_profit_usd: number
+  gross_loss_usd: number
+  monthly: MonthlyPoint[]
+}
+
 export interface StrategyBacktestStats {
   expectancy_pts: number
   expectancy_usd: number
@@ -78,4 +98,5 @@ export interface DashboardData {
   strategies: Record<string, Strategy>
   combo_stats: Record<string, PortfolioStats>
   strategy_backtest_stats?: Record<string, StrategyBacktestStats>
+  performance_detail?: Record<string, StrategyPerfDetail>
 }

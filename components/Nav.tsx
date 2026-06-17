@@ -3,9 +3,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const TABS = [
-  { href: "/",          label: "Overview" },
-  { href: "/analysis",  label: "Analysis" },
-  { href: "/history",   label: "History" },
+  { href: "/",             label: "Overview" },
+  { href: "/performance",  label: "Performance" },
+  { href: "/analysis",     label: "Analysis" },
+  { href: "/history",      label: "History" },
 ]
 
 export default function Nav({ generatedAt }: { generatedAt?: string }) {
