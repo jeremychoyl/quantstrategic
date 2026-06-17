@@ -57,6 +57,15 @@ export interface Strategy {
   params: StrategyParams
 }
 
+export interface StrategyBacktestStats {
+  expectancy_pts: number
+  expectancy_usd: number
+  max_dd_usd: number
+  profit_factor: number
+  n_trades: number
+  win_pct: number
+}
+
 export interface DashboardData {
   generated_at: string
   bridge_mode: string
@@ -68,4 +77,5 @@ export interface DashboardData {
   net_returns: NetReturns
   strategies: Record<string, Strategy>
   combo_stats: Record<string, PortfolioStats>
+  strategy_backtest_stats?: Record<string, StrategyBacktestStats>
 }
