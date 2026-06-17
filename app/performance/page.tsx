@@ -1,9 +1,10 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData, StrategyPerfDetail, StrategyBacktestStats, MonthlyPoint } from "@/lib/types"
+import { DashboardData, StrategyPerfDetail, StrategyBacktestStats } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
+import VarianceCard from "@/components/VarianceCard"
 
 const PerfEquityChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.PerfEquityChart })),
@@ -20,9 +21,8 @@ const WinLossPie = dynamic(
 
 // ── constants ─────────────────────────────────────────────────────────────────
 
-const UP   = "#00d4aa"
-const DOWN = "#ff4d6d"
-const WARN = "#f59e0b"
+const UP      = "#00d4aa"
+const DOWN    = "#ff4d6d"
 const CAPITAL = 22_000
 
 const STRATS = [
@@ -43,28 +43,7 @@ const fmt$ = (v: number, sign = false) => {
   return `${s}$${Math.abs(Math.round(v)).toLocaleString()}`
 }
 
-function monthsElapsed(since: string): number {
-  const s = new Date(since)
-  const now = new Date()
-  return Math.max(
-    (now.getFullYear() - s.getFullYear()) * 12 + (now.getMonth() - s.getMonth()) + now.getDate() / 30,
-    0.1
-  )
-}
 
-type DriftStatus = "on_track" | "below" | "underperforming"
-
-function driftStatus(current: number, mean: number, std: number): DriftStatus {
-  if (current >= mean - std)      return "on_track"
-  if (current >= mean - 2 * std)  return "below"
-  return "underperforming"
-}
-
-const DRIFT_STYLE: Record<DriftStatus, { bg: string; border: string; color: string; label: string; icon: string }> = {
-  on_track:       { bg: "#0a1a12", border: "#1a3020", color: "#86efac", label: "On track",          icon: "✅" },
-  below:          { bg: "#1a1500", border: "#3a2a0a", color: WARN,      label: "Below expectation", icon: "⚠️" },
-  underperforming:{ bg: "#1a0a0a", border: "#3a1010", color: DOWN,      label: "Underperforming",   icon: "🔴" },
-}
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
@@ -102,50 +81,6 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
       {sub && <p className="text-xs mt-0.5 mb-4" style={{ color: "var(--muted)" }}>{sub}</p>}
       {!sub && <div className="mb-4" />}
       {children}
-    </div>
-  )
-}
-
-// ── Variance / drift indicator ────────────────────────────────────────────────
-
-function VarianceCard({
-  bts, ytdTotalUsd, generatedAt,
-}: { bts: StrategyBacktestStats; ytdTotalUsd: number; generatedAt: string }) {
-  const n     = monthsElapsed("2026-01-01")
-  const curr  = ytdTotalUsd > 0 ? ytdTotalUsd / n : null
-  const mean  = bts.monthly_mean_usd
-  const std   = bts.monthly_std_usd
-  const status: DriftStatus = curr !== null ? driftStatus(curr, mean, std) : "on_track"
-  const st    = DRIFT_STYLE[status]
-
-  return (
-    <div className="rounded-xl px-5 py-4"
-         style={{ background: st.bg, border: `1px solid ${st.border}` }}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: st.color }}>
-            {st.icon} Strategy Variance · {st.label}
-          </p>
-          <p className="text-xs" style={{ color: st.color, opacity: 0.8 }}>
-            Historical baseline (16y): {fmt$(mean, true)} ± {fmt$(std)} / month
-            {" "}· 1σ range [{fmt$(mean - std)}, {fmt$(mean + std, true)}]
-          </p>
-        </div>
-        <div className="text-right shrink-0">
-          {curr !== null ? (
-            <>
-              <p className="text-lg font-bold tabular-nums" style={{ color: st.color }}>
-                {fmt$(curr, true)} / month
-              </p>
-              <p className="text-xs" style={{ color: st.color, opacity: 0.7 }}>
-                2026 YTD · {n.toFixed(1)} months
-              </p>
-            </>
-          ) : (
-            <p className="text-xs" style={{ color: st.color, opacity: 0.7 }}>No 2026 trades yet</p>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -264,7 +199,11 @@ export default function Performance() {
             </div>
 
             {/* ── Variance / drift indicator ────────────────────── */}
-            <VarianceCard bts={bts} ytdTotalUsd={ytdUsd} generatedAt={data.generated_at} />
+            <VarianceCard
+              stats={bts}
+              ytdTotalUsd={ytdUsd}
+              label={`${STRATS.find(s => s.key === active)?.label ?? active} Variance`}
+            />
 
             {/* ── 16y equity curve ──────────────────────────────── */}
             <Card title="16-Year Equity Curve" sub="Monthly cumulative P&L · 2010–2026 · 1 MNQ">

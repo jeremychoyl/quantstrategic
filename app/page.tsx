@@ -9,6 +9,7 @@ import PnLBarClient from "@/components/PnLBarClient"
 import StatsGrid from "@/components/StatsGrid"
 import Positions from "@/components/Positions"
 import ShareCard from "@/components/ShareCard"
+import VarianceCard from "@/components/VarianceCard"
 
 const STRATEGY_DISPLAY: Record<string, string> = {
   orb: "ORB 30m",
@@ -160,6 +161,14 @@ export default function Overview() {
               <h2 className="text-sm font-bold mb-3">Portfolio Statistics · 2026 OOS</h2>
               <StatsGrid stats={data.portfolio_stats} />
             </div>
+
+            {data.strategy_backtest_stats?.portfolio && (
+              <VarianceCard
+                stats={data.strategy_backtest_stats.portfolio}
+                ytdTotalUsd={data.combo_stats?.["ema+orb+dc"]?.total_usd ?? 0}
+                label="Portfolio Variance · ORB + EMA + DC"
+              />
+            )}
 
             {data.strategy_backtest_stats && (
               <StrategyBacktestSection stats={data.strategy_backtest_stats} strategies={data.strategies} />
