@@ -95,9 +95,61 @@ export interface StrategyBacktestStats {
   max_consec_losses: number
 }
 
+export interface LiveTrade {
+  strategy: string
+  strategy_key: string
+  direction: "Long" | "Short"
+  entry_time_sgt: string
+  entry_signal_ref: number
+  entry_fill: number
+  entry_slippage_pts: number
+  exit_time_sgt: string
+  exit_fill: number
+  exit_type: "stop" | "eod" | "reverse" | "time"
+  actual_pnl_pts: number | null
+  actual_pnl_usd: number | null
+  backtest_exp_pts: number
+  backtest_exp_usd: number
+  vs_expectancy_pts: number | null
+  vs_expectancy_usd: number | null
+  week: string
+  trade_date: string
+}
+
+export interface LiveDayCurve {
+  date: string
+  day_pnl_pts: number
+  day_pnl_usd: number
+  cum_pts: number
+  cum_usd: number
+}
+
+export interface LiveWeekSummary {
+  week: string
+  trades_count: number
+  total_pnl_pts: number
+  total_pnl_usd: number
+}
+
+export interface LiveTradesData {
+  trades: LiveTrade[]
+  weeks: LiveWeekSummary[]
+  week_list: string[]
+  daily_curve: LiveDayCurve[]
+  summary: {
+    total_trades: number
+    total_pnl_pts: number
+    total_pnl_usd: number
+    win_rate: number
+    avg_slippage_pts: number
+    live_since: string
+  }
+}
+
 export interface DashboardData {
   generated_at: string
   bridge_mode: string
+  live_since: string
   demo_since: string
   oos_equity_curve: EquityPoint[]
   last_7_days: DayPnL[]
@@ -108,4 +160,5 @@ export interface DashboardData {
   combo_stats: Record<string, PortfolioStats>
   strategy_backtest_stats?: Record<string, StrategyBacktestStats>
   performance_detail?: Record<string, StrategyPerfDetail>
+  live_trades?: LiveTradesData
 }
