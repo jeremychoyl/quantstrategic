@@ -166,6 +166,8 @@ export interface ProjectionBook {
   calmar: number
   capital_estimate_usd: number
   return_on_capital_pct: number
+  margin_usd?: number
+  dd_buffer_usd?: number
 }
 
 export interface BookEquityPoint {
