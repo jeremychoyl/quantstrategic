@@ -146,6 +146,71 @@ export interface LiveTradesData {
   }
 }
 
+export interface ProjectionStrategy {
+  name: string
+  instrument: string
+  direction: string
+  status: string
+  annual_usd: number
+  total_usd: number
+  sharpe: number
+  max_dd_usd: number
+  calmar: number
+}
+
+export interface ProjectionBook {
+  annual_usd: number
+  total_usd: number
+  sharpe: number
+  max_dd_usd: number
+  calmar: number
+  capital_estimate_usd: number
+  return_on_capital_pct: number
+}
+
+export interface Projections {
+  as_of: string
+  note: string
+  n_strategies: number
+  per_strategy: ProjectionStrategy[]
+  book: ProjectionBook
+  correlation: Record<string, Record<string, number>>
+}
+
+export interface CommodityDemoStrategy {
+  name: string
+  today_usd: number
+  week_usd: number
+  all_time_usd: number
+  n_trades: number
+}
+
+export interface CommodityDemoPosition {
+  strategy: string
+  direction: string
+  size: string
+  entry_px: number
+  entry_date: string
+  signal_close: number
+}
+
+export interface CommodityDemoFill {
+  strategy: string
+  ts: string
+  action: string
+  price: number
+  pnl_usd: number
+}
+
+export interface CommodityDemo {
+  as_of: string
+  note: string
+  book: { realized_usd: number; n_trades: number }
+  per_strategy: Record<string, CommodityDemoStrategy>
+  open_positions: CommodityDemoPosition[]
+  recent_fills: CommodityDemoFill[]
+}
+
 export interface DashboardData {
   generated_at: string
   bridge_mode: string
@@ -161,4 +226,6 @@ export interface DashboardData {
   strategy_backtest_stats?: Record<string, StrategyBacktestStats>
   performance_detail?: Record<string, StrategyPerfDetail>
   live_trades?: LiveTradesData
+  projections?: Projections
+  commodity_demo?: CommodityDemo
 }
