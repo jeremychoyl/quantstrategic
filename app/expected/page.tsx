@@ -40,8 +40,37 @@ const fmt$ = (v: number, sign = false) => {
   const s = v < 0 ? "−" : sign && v > 0 ? "+" : ""
   return `${s}$${Math.abs(Math.round(v)).toLocaleString()}`
 }
-function KStat({ label, value, sub, color, last }: {
-  label: string; value: string; sub?: string; color?: string; last?: boolean
+type Rating = { stars: number; label: string }
+const RATING_LABELS = ["Poor", "Marginal", "Solid", "Strong", "Excellent"]   // index = stars-1
+// Industry-standard bands [excellent, strong, solid, marginal] → 5/4/3/2★, else 1★.
+const RATING_BANDS: Record<string, [number, number, number, number]> = {
+  pf:       [2.5, 1.8, 1.3, 1.0],
+  payoff:   [3.0, 2.0, 1.5, 1.0],
+  sharpe:   [3.0, 2.0, 1.5, 1.0],
+  sortino:  [4.0, 3.0, 2.0, 1.0],
+  calmar:   [3.0, 1.0, 0.5, 0.3],
+  recovery: [5.0, 3.0, 2.0, 1.0],
+}
+function rateRatio(metric: keyof typeof RATING_BANDS, v: number): Rating {
+  const [e, s, so, m] = RATING_BANDS[metric]
+  const stars = v >= e ? 5 : v >= s ? 4 : v >= so ? 3 : v >= m ? 2 : 1
+  return { stars, label: RATING_LABELS[stars - 1] }
+}
+function StarRow({ rating }: { rating: Rating }) {
+  return (
+    <div className="flex items-center gap-1 mt-0.5">
+      <span className="text-xs leading-none tracking-tighter">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} style={{ color: i < rating.stars ? "#FBBF24" : "#374151" }}>★</span>
+        ))}
+      </span>
+      <span className="text-[10px]" style={{ color: "var(--muted)" }}>{rating.label}</span>
+    </div>
+  )
+}
+
+function KStat({ label, value, sub, color, last, rating }: {
+  label: string; value: string; sub?: string; color?: string; last?: boolean; rating?: Rating
 }) {
   return (
     <div className="p-4 flex flex-col gap-1"
@@ -51,6 +80,7 @@ function KStat({ label, value, sub, color, last }: {
       </p>
       <p className="text-xl font-bold tabular-nums" style={{ color: color ?? "var(--text)" }}>{value}</p>
       {sub && <p className="text-xs" style={{ color: "var(--muted)" }}>{sub}</p>}
+      {rating && <StarRow rating={rating} />}
     </div>
   )
 }
@@ -96,21 +126,22 @@ function BookStatBlock({ b }: { b: Strategy16y }) {
           <KStat label="Avg up day"      value={fmt$(b.avg_win_usd, true)} sub="per green day" color={UP} />
           <KStat label="Avg down day"    value={fmt$(b.avg_loss_usd)} sub="per red day" color={DOWN} />
           <KStat label="Daily payoff"    value={`${b.payoff_ratio}×`} sub="up ÷ down day"
-                 color={b.payoff_ratio >= 2 ? UP : "var(--text)"} />
+                 color={b.payoff_ratio >= 2 ? UP : "var(--text)"} rating={rateRatio("payoff", b.payoff_ratio)} />
           <KStat label="Profit factor"   value={b.profit_factor.toFixed(2)} sub="gross up ÷ gross down"
-                 color={b.profit_factor >= 1.5 ? UP : DOWN} last />
+                 color={b.profit_factor >= 1.5 ? UP : DOWN} rating={rateRatio("pf", b.profit_factor)} last />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5">
           <KStat label="Daily expectancy" value={fmt$(b.expectancy_usd, true)} sub="mean / day"
                  color={b.expectancy_usd >= 0 ? UP : DOWN} />
           <KStat label="Sharpe"           value={b.sharpe.toFixed(2)} sub="annualised"
-                 color={b.sharpe >= 1.5 ? UP : "var(--text)"} />
+                 color={b.sharpe >= 1.5 ? UP : "var(--text)"} rating={rateRatio("sharpe", b.sharpe)} />
           <KStat label="Sortino"          value={b.sortino.toFixed(2)} sub="downside only"
-                 color={b.sortino >= 2 ? UP : "var(--text)"} />
+                 color={b.sortino >= 2 ? UP : "var(--text)"} rating={rateRatio("sortino", b.sortino)} />
           <KStat label="Calmar"           value={b.calmar.toFixed(2)} sub="CAGR ÷ max DD"
-                 color={b.calmar >= 1 ? UP : "var(--text)"} />
+                 color={b.calmar >= 1 ? UP : "var(--text)"} rating={rateRatio("calmar", b.calmar)} />
           <KStat label="Recovery factor"  value={`${b.recovery_factor}×`} sub="net ÷ max DD"
-                 color={b.recovery_factor >= 3 ? UP : "var(--text)"} last />
+                 color={b.recovery_factor >= 3 ? UP : "var(--text)"}
+                 rating={rateRatio("recovery", b.recovery_factor)} last />
         </div>
       </div>
 
@@ -166,21 +197,23 @@ function StrategyProjectionPanel({ projections, k }: { projections: Projections;
               <KStat label="Avg winner"    value={fmt$(f.avg_win_usd, true)} sub="per win" color={UP} />
               <KStat label="Avg loser"     value={fmt$(f.avg_loss_usd)} sub="per loss" color={DOWN} />
               <KStat label="Payoff ratio"  value={`${f.payoff_ratio}×`} sub="avg win ÷ avg loss"
-                     color={f.payoff_ratio >= 2 ? UP : "var(--text)"} />
+                     color={f.payoff_ratio >= 2 ? UP : "var(--text)"} rating={rateRatio("payoff", f.payoff_ratio)} />
               <KStat label="Profit factor" value={f.profit_factor.toFixed(2)} sub="gross win ÷ gross loss"
-                     color={f.profit_factor >= 1.5 ? UP : f.profit_factor >= 1 ? "var(--text)" : DOWN} last />
+                     color={f.profit_factor >= 1.5 ? UP : f.profit_factor >= 1 ? "var(--text)" : DOWN}
+                     rating={rateRatio("pf", f.profit_factor)} last />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5">
               <KStat label="Expectancy"      value={`${fmt$(f.expectancy_usd, true)}`} sub="per trade"
                      color={f.expectancy_usd >= 0 ? UP : DOWN} />
               <KStat label="Sharpe"          value={f.sharpe.toFixed(2)} sub="annualised"
-                     color={f.sharpe >= 1.5 ? UP : "var(--text)"} />
+                     color={f.sharpe >= 1.5 ? UP : "var(--text)"} rating={rateRatio("sharpe", f.sharpe)} />
               <KStat label="Sortino"         value={f.sortino.toFixed(2)} sub="downside only"
-                     color={f.sortino >= 2 ? UP : "var(--text)"} />
+                     color={f.sortino >= 2 ? UP : "var(--text)"} rating={rateRatio("sortino", f.sortino)} />
               <KStat label="Calmar"          value={f.calmar.toFixed(2)} sub="CAGR ÷ max DD"
-                     color={f.calmar >= 1 ? UP : "var(--text)"} />
+                     color={f.calmar >= 1 ? UP : "var(--text)"} rating={rateRatio("calmar", f.calmar)} />
               <KStat label="Recovery factor" value={`${f.recovery_factor}×`} sub="net ÷ max DD"
-                     color={f.recovery_factor >= 3 ? UP : "var(--text)"} last />
+                     color={f.recovery_factor >= 3 ? UP : "var(--text)"}
+                     rating={rateRatio("recovery", f.recovery_factor)} last />
             </div>
           </div>
 
