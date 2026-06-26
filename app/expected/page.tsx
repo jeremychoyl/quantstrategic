@@ -19,6 +19,10 @@ const WinLossPie = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.WinLossPie })),
   { ssr: false }
 )
+const BookEquityChart = dynamic(
+  () => import("@/components/BookEquityChart"),
+  { ssr: false, loading: () => <Skel h={300} /> }
+)
 
 const UP      = "#00d4aa"
 const DOWN    = "#ff4d6d"
@@ -217,6 +221,9 @@ export default function Expected() {
 
         {/* Projected Profit — 5-strategy book (book-level context) */}
         {data?.projections && <BookProjection projections={data.projections} />}
+
+        {/* YTD book-equity curve — 5-strategy running equity (guarded) */}
+        {data?.projections?.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
 
         {/* Gold / Crude — demo sandbox P&L (guarded: render nothing if key absent) */}
         {data?.commodity_demo && <CommodityDemo demo={data.commodity_demo} />}
