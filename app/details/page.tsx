@@ -10,6 +10,10 @@ const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
   ssr: false,
   loading: () => <div className="h-52 animate-pulse rounded" style={{ background: "var(--surface2)" }} />,
 })
+const BookEquityChart = dynamic(() => import("@/components/BookEquityChart"), {
+  ssr: false,
+  loading: () => <div className="h-72 animate-pulse rounded" style={{ background: "var(--surface2)" }} />,
+})
 
 const UP   = "#00d4aa"
 const DOWN = "#ff4d6d"
@@ -239,6 +243,13 @@ export default function Details() {
             <p><span className="font-semibold">C · vs Expected</span>: Actual P&L minus backtest expectancy. Converges to 0 over many trades.</p>
           </div>
         </div>
+
+        {/* YTD book-equity curve — 5-strategy running equity (guarded) */}
+        {data?.projections?.ytd_equity && (
+          <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
+            <BookEquityChart eq={data.projections.ytd_equity} />
+          </div>
+        )}
 
         {/* Gold / Crude demo sandbox — separate block, isolated from the live MNQ log
             above (guarded: renders nothing if the key is absent) */}
