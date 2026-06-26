@@ -237,6 +237,8 @@ function StatPill({ label, value, color, rating }: {
   )
 }
 
+const SMALL_SAMPLE_DAYS = 20   // below this, annualised ratio ratings are flagged as noisy
+
 function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number }) {
   const dd = stats.max_dd_usd
   return (
@@ -287,6 +289,15 @@ function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number })
         <StatPill label="Longest drawdown" value={`${stats.days_underwater}d`}
                   rating={rateRisk("underwater", stats.days_underwater)} />
       </div>
+
+      {/* small-sample footnote — annualised ratio ★ ratings get noisy on short windows */}
+      {stats.trade_days > 0 && stats.trade_days < SMALL_SAMPLE_DAYS && (
+        <p className="text-[11px] leading-snug" style={{ color: "#f59e0b" }}>
+          ⚠ Only {stats.trade_days} trading day{stats.trade_days === 1 ? "" : "s"} in this window — the
+          annualised ratios (Sharpe, Sortino, Calmar, recovery) and their ★ ratings are statistically
+          noisy at this sample size. Use 3M+ for reliable ratings.
+        </p>
+      )}
     </div>
   )
 }
