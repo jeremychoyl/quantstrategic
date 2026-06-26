@@ -4,6 +4,8 @@ import dynamic from "next/dynamic"
 import { DashboardData, StrategyPerfDetail, StrategyBacktestStats, LiveTradesData } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
+import BookProjection from "@/components/BookProjection"
+import CommodityDemo from "@/components/CommodityDemo"
 
 const PerfEquityChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.PerfEquityChart })),
@@ -212,6 +214,12 @@ export default function Expected() {
             <div className="grid grid-cols-2 gap-4"><Skel h={280} /><Skel h={280} /></div>
           </div>
         )}
+
+        {/* Projected Profit — 5-strategy book (book-level context) */}
+        {data?.projections && <BookProjection projections={data.projections} />}
+
+        {/* Gold / Crude — demo sandbox P&L (guarded: render nothing if key absent) */}
+        {data?.commodity_demo && <CommodityDemo demo={data.commodity_demo} />}
 
         {/* Live vs Expected — always at top when data exists */}
         {data?.live_trades && (
