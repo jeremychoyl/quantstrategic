@@ -168,6 +168,25 @@ export interface ProjectionBook {
   return_on_capital_pct: number
 }
 
+export interface BookEquityPoint {
+  date: string
+  orb: number
+  ema: number
+  dc: number
+  gold: number
+  crude: number
+  combined: number
+}
+
+export interface YtdEquity {
+  as_of: string
+  since: string
+  through: string
+  note: string
+  series: BookEquityPoint[]
+  end: Record<string, number>
+}
+
 export interface Projections {
   as_of: string
   note: string
@@ -175,6 +194,7 @@ export interface Projections {
   per_strategy: ProjectionStrategy[]
   book: ProjectionBook
   correlation: Record<string, Record<string, number>>
+  ytd_equity?: YtdEquity
 }
 
 export interface CommodityDemoStrategy {
