@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData, EquityPoint, PortfolioStats, LiveDayCurve } from "@/lib/types"
+import { DashboardData, BookEquityPoint, PortfolioStats, LiveDayCurve } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import StrategyCard from "@/components/StrategyModal"
@@ -24,44 +24,41 @@ const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
 
 type DataView = "projected" | "live"
 type Period   = "1W" | "1M" | "3M" | "YTD" | "ALL" | "CUSTOM"
-type ComboKey = "ema" | "orb" | "overnight" | "dc"
+type ComboKey = "orb" | "ema" | "dc" | "gold" | "crude"
 type Contracts = Record<ComboKey, number>
 
 const COMBO_LABELS: Record<ComboKey, string> = {
-  orb:       "ORB 30m",
-  ema:       "EMA Cross 5m",
-  dc:        "DC MeanRev",
-  overnight: "Overnight",
+  orb:   "ORB 30m",
+  ema:   "EMA Cross 5m",
+  dc:    "DC MeanRev",
+  gold:  "Gold short",
+  crude: "Crude short",
 }
-const COMBOS: ComboKey[] = ["orb", "ema", "dc", "overnight"]
+const COMBOS: ComboKey[] = ["orb", "ema", "dc", "gold", "crude"]
+// the 2 demo-sandbox legs (vs the 3 live MNQ) — for the "demo" pill on toggles
+const DEMO_KEYS: ComboKey[] = ["gold", "crude"]
 
 function buildCombinedCurve(
-  curve: EquityPoint[],
+  curve: BookEquityPoint[],
   selected: Set<ComboKey>,
   contracts: Contracts,
-): EquityPoint[] {
+): BookEquityPoint[] {
   return curve.map(pt => {
     let combined = 0
-    if (selected.has("ema"))       combined += (pt.ema       ?? 0) * contracts.ema
-    if (selected.has("orb"))       combined += (pt.orb       ?? 0) * contracts.orb
-    if (selected.has("dc"))        combined += (pt.dc        ?? 0) * contracts.dc
-    if (selected.has("overnight")) combined += (pt.overnight ?? 0) * contracts.overnight
+    for (const k of COMBOS) if (selected.has(k)) combined += (pt[k] ?? 0) * contracts[k]
     return { ...pt, combined }
   })
 }
 
 function computeScaledStats(
-  curve: EquityPoint[],
+  curve: BookEquityPoint[],
   selected: Set<ComboKey>,
   contracts: Contracts,
 ): PortfolioStats {
   const daily = curve.map((pt, i) => {
     const prev = curve[i - 1]
     let d = 0
-    if (selected.has("ema"))       d += ((pt.ema       ?? 0) - (prev?.ema       ?? 0)) * contracts.ema
-    if (selected.has("orb"))       d += ((pt.orb       ?? 0) - (prev?.orb       ?? 0)) * contracts.orb
-    if (selected.has("dc"))        d += ((pt.dc        ?? 0) - (prev?.dc        ?? 0)) * contracts.dc
-    if (selected.has("overnight")) d += ((pt.overnight ?? 0) - (prev?.overnight ?? 0)) * contracts.overnight
+    for (const k of COMBOS) if (selected.has(k)) d += ((pt[k] ?? 0) - (prev?.[k] ?? 0)) * contracts[k]
     return d
   })
   const active = daily.filter(d => d !== 0)
@@ -88,7 +85,7 @@ function computeScaledStats(
   }
 }
 
-function filterCurve(curve: EquityPoint[], period: Period, from: string, to: string): EquityPoint[] {
+function filterCurve<T extends { date: string }>(curve: T[], period: Period, from: string, to: string): T[] {
   const now = new Date()
   let start: Date
   switch (period) {
@@ -105,8 +102,8 @@ function filterCurve(curve: EquityPoint[], period: Period, from: string, to: str
   return curve.filter(d => new Date(d.date) >= start)
 }
 
-function rebase(data: EquityPoint[], capital: number): EquityPoint[] {
-  if (!data.length) return data
+function rebase<T extends { combined: number }>(data: T[], capital: number): (T & { combined_pct: number })[] {
+  if (!data.length) return data as (T & { combined_pct: number })[]
   return data.map(d => ({ ...d, combined_pct: (d.combined / capital) * 100 }))
 }
 
@@ -254,8 +251,8 @@ export default function Configurator() {
   const [period, setPeriod]       = useState<Period>("YTD")
   const [from, setFrom]           = useState("2026-01-01")
   const [to, setTo]               = useState(new Date().toISOString().slice(0, 10))
-  const [selected, setSelected]   = useState<Set<ComboKey>>(new Set(["orb", "ema", "dc"]))
-  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1, overnight: 1 })
+  const [selected, setSelected]   = useState<Set<ComboKey>>(new Set(["orb", "ema", "dc", "gold", "crude"]))
+  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1, gold: 1, crude: 1 })
 
   const load = useCallback(async () => {
     const d = await fetchDashboard()
@@ -276,22 +273,23 @@ export default function Configurator() {
     setContracts(prev => ({ ...prev, [key]: n }))
 
   const reset = () => {
-    setSelected(new Set(["orb", "ema", "dc"]))
-    setContracts({ orb: 1, ema: 1, dc: 1, overnight: 1 })
+    setSelected(new Set(["orb", "ema", "dc", "gold", "crude"]))
+    setContracts({ orb: 1, ema: 1, dc: 1, gold: 1, crude: 1 })
     setView("projected")
   }
 
   const cap = parseFloat(capital.replace(/,/g, "")) || 25000
 
+  const ytdSeries = data?.projections?.ytd_equity?.series ?? []
   const scaledCurve = useMemo(
-    () => data ? buildCombinedCurve(data.oos_equity_curve, selected, contracts) : [],
-    [data, selected, contracts],
+    () => buildCombinedCurve(ytdSeries, selected, contracts),
+    [ytdSeries, selected, contracts],
   )
   const filtered  = useMemo(() => filterCurve(scaledCurve, period, from, to), [scaledCurve, period, from, to])
   const rebased   = useMemo(() => rebase(filtered, cap), [filtered, cap])
   const stats     = useMemo(
-    () => data ? computeScaledStats(data.oos_equity_curve, selected, contracts) : null,
-    [data, selected, contracts],
+    () => computeScaledStats(ytdSeries, selected, contracts),
+    [ytdSeries, selected, contracts],
   )
 
   const liveCurve = data?.live_trades?.daily_curve ?? []
@@ -305,7 +303,7 @@ export default function Configurator() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h1 className="text-xl font-black">Configurator</h1>
+          <h1 className="text-xl font-black">Strategies</h1>
 
           {/* Projected / Live toggle */}
           <div className="flex gap-1 rounded-lg p-1"
@@ -340,20 +338,18 @@ export default function Configurator() {
                 <p className="text-xs font-semibold mb-2" style={{ color: "var(--muted)" }}>PORTFOLIO COMBINATION</p>
                 <div className="flex flex-wrap gap-2">
                   {COMBOS.map(key => {
-                    const on      = selected.has(key)
-                    const shelved = data?.strategies
-                      ? Object.values(data.strategies).find(s => s.combo_key === key)?.status === "shelved"
-                      : key === "overnight"
+                    const on   = selected.has(key)
+                    const demo = DEMO_KEYS.includes(key)
                     return (
                       <button key={key} onClick={() => toggle(key)}
                               className="px-4 py-2 rounded-lg text-sm font-bold transition-all"
                               style={{
-                                background: on ? (shelved ? "#2a2212" : "var(--accent2)") : "var(--surface2)",
-                                color:      on ? (shelved ? "#f59e0b"  : "#fff")           : "var(--muted)",
-                                border: `1px solid ${on ? (shelved ? "#78350f" : "var(--accent2)") : "var(--border)"}`,
+                                background: on ? (demo ? "#2a2810" : "var(--accent2)") : "var(--surface2)",
+                                color:      on ? (demo ? "#fbbf24"  : "#fff")           : "var(--muted)",
+                                border: `1px solid ${on ? (demo ? "#854d0e" : "var(--accent2)") : "var(--border)"}`,
                               }}>
                         {COMBO_LABELS[key]}
-                        {shelved && <span className="ml-1.5 text-xs opacity-70">(shelved)</span>}
+                        {demo && <span className="ml-1.5 text-xs opacity-70">◐ demo</span>}
                       </button>
                     )
                   })}
@@ -367,7 +363,7 @@ export default function Configurator() {
 
               <div>
                 <p className="text-xs font-semibold mb-2" style={{ color: "var(--muted)" }}>
-                  SCALE UP · MNQ CONTRACTS PER STRATEGY
+                  SCALE UP · CONTRACTS PER STRATEGY
                   {isScaled && (
                     <span className="ml-2 px-1.5 py-0.5 rounded text-xs font-bold"
                           style={{ background: "#1a2a24", color: "var(--up)" }}>

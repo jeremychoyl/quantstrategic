@@ -1,11 +1,10 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData, StrategyPerfDetail, StrategyBacktestStats, LiveTradesData } from "@/lib/types"
+import { DashboardData, StrategyPerfDetail, StrategyBacktestStats, LiveTradesData, Projections } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
-import BookProjection from "@/components/BookProjection"
-import CommodityDemo from "@/components/CommodityDemo"
+import BookProjection, { CorrelationMatrix } from "@/components/BookProjection"
 
 const PerfEquityChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.PerfEquityChart })),
@@ -29,11 +28,19 @@ const DOWN    = "#ff4d6d"
 const CAPITAL = 22_000
 
 const STRATS = [
-  { key: "ema", label: "EMA Cross 5m",  note: null },
-  { key: "dc",  label: "DC Mean Rev",   note: null },
-  { key: "orb", label: "ORB 30m",       note: "Edge confirmed post-2021. Pre-2021 period (PF ~0.79) is included in the 16y totals — the walkforward gate correctly sits it out in live trading." },
+  { key: "all",   label: "All",          note: null },
+  { key: "orb",   label: "ORB 30m",      note: "Edge confirmed post-2021. Pre-2021 period (PF ~0.79) is included in the 16y totals — the walkforward gate correctly sits it out in live trading." },
+  { key: "ema",   label: "EMA Cross 5m", note: null },
+  { key: "dc",    label: "DC Mean Rev",  note: null },
+  { key: "gold",  label: "Gold short",   note: "Demo sandbox (MGC). Daily Donchian-high short reversion." },
+  { key: "crude", label: "Crude short",  note: "Demo sandbox (MCL). Daily Donchian-high short reversion." },
 ] as const
 type StratKey = typeof STRATS[number]["key"]
+type StrategyKey = "orb" | "ema" | "dc" | "gold" | "crude"   // every tab except "all"
+const isMNQ = (k: StratKey): k is "orb" | "ema" | "dc" => k === "orb" || k === "ema" || k === "dc"
+const PER_STRATEGY_NAME: Record<StrategyKey, string> = {
+  orb: "ORB", ema: "EMA", dc: "DC", gold: "Gold", crude: "Crude",
+}
 
 function Skel({ h }: { h: number }) {
   return <div className="animate-pulse rounded" style={{ height: h, background: "var(--surface2)" }} />
@@ -166,9 +173,36 @@ function LiveVsExpected({ lt, activeKey, bts }: {
   )
 }
 
+function StrategyProjectionPanel({ projections, k }: { projections: Projections; k: StrategyKey }) {
+  const s = projections.per_strategy.find(p => p.name === PER_STRATEGY_NAME[k])
+  const ytdEnd = projections.ytd_equity?.end?.[k]
+  return (
+    <>
+      {s && (
+        <div className="rounded-xl overflow-hidden"
+             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="grid grid-cols-2 sm:grid-cols-5">
+            <KStat label="YTD P&L" value={ytdEnd != null ? fmt$(ytdEnd, true) : "—"}
+                   sub="2026 · 1 contract" color={(ytdEnd ?? 0) >= 0 ? UP : DOWN} />
+            <KStat label="Annual P&L" value={fmt$(s.annual_usd, true)} sub="16y avg / yr"
+                   color={s.annual_usd >= 0 ? UP : DOWN} />
+            <KStat label="Sharpe" value={s.sharpe.toFixed(2)} sub="annualised"
+                   color={s.sharpe >= 1.5 ? UP : "var(--text)"} />
+            <KStat label="Calmar" value={s.calmar.toFixed(2)} sub="CAGR ÷ max DD"
+                   color={s.calmar >= 1 ? UP : "var(--text)"} />
+            <KStat label="Max Drawdown" value={fmt$(s.max_dd_usd)}
+                   sub={`${s.instrument} · ${s.direction.replace("-", " ")}`} color={DOWN} last />
+          </div>
+        </div>
+      )}
+      {projections.ytd_equity && <BookEquityChart eq={projections.ytd_equity} focus={k} />}
+    </>
+  )
+}
+
 export default function Expected() {
   const [data, setData] = useState<DashboardData | null>(null)
-  const [active, setActive] = useState<StratKey>("ema")
+  const [active, setActive] = useState<StratKey>("all")
 
   const load = useCallback(async () => {
     const d = await fetchDashboard()
@@ -192,9 +226,9 @@ export default function Expected() {
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-black tracking-tight">Expected</h1>
+            <h1 className="text-xl font-black tracking-tight">Projection</h1>
             <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-              Full 16-year backtest · 2010–2026 · 1 MNQ · 1.24 pts cost RT
+              How all live + demo strategies would be performing · 2026 YTD &amp; 16y backtest · 1 contract each
             </p>
           </div>
           <div className="flex gap-1.5">
@@ -219,30 +253,25 @@ export default function Expected() {
           </div>
         )}
 
-        {/* Projected Profit — 5-strategy book (book-level context) */}
-        {data?.projections && <BookProjection projections={data.projections} />}
+        {/* ALL — combined book overview + 5-strategy YTD equity */}
+        {data?.projections && active === "all" && (
+          <>
+            <BookProjection projections={data.projections} hideCorrelation />
+            {data.projections.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
+          </>
+        )}
 
-        {/* YTD book-equity curve — 5-strategy running equity (guarded) */}
-        {data?.projections?.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
+        {/* SINGLE STRATEGY — projection stats + focused YTD equity line */}
+        {data?.projections && active !== "all" && (
+          <StrategyProjectionPanel projections={data.projections} k={active} />
+        )}
 
-        {/* Gold / Crude — demo sandbox P&L (guarded: render nothing if key absent) */}
-        {data?.commodity_demo && <CommodityDemo demo={data.commodity_demo} />}
-
-        {/* Live vs Expected — always at top when data exists */}
-        {data?.live_trades && (
+        {/* MNQ strategy — live-vs-expected (live fills exist only for MNQ) */}
+        {active !== "all" && isMNQ(active) && data?.live_trades && (
           <LiveVsExpected lt={data.live_trades} activeKey={active} bts={bts} />
         )}
 
-        {data && (!bts || !detail) && (
-          <div className="rounded-xl p-10 text-center"
-               style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>
-              Performance detail not yet available — run dashboard push to populate
-            </p>
-          </div>
-        )}
-
-        {data && bts && detail && (
+        {active !== "all" && isMNQ(active) && data && bts && detail && (
           <>
             <div className="rounded-xl overflow-hidden"
                  style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
@@ -357,6 +386,9 @@ export default function Expected() {
             )}
           </>
         )}
+
+        {/* Strategy correlation — always at the very bottom */}
+        {data?.projections && <CorrelationMatrix projections={data.projections} />}
       </main>
     </div>
   )
