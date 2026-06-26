@@ -50,11 +50,22 @@ function buildCombinedCurve(
   })
 }
 
+// PortfolioStats + the extra rated ratios & risk metrics (all per-trading-day,
+// computed live for the selected/scaled combination).
+type ScaledStats = PortfolioStats & {
+  payoff: number; sortino: number; calmar: number; recovery: number
+  concentration: number; max_consec_down: number; days_underwater: number
+}
+const ZERO_STATS: ScaledStats = {
+  pf: 0, sharpe: 0, max_dd_usd: 0, win_pct: 0, total_pts: 0, total_usd: 0, trade_days: 0,
+  payoff: 0, sortino: 0, calmar: 0, recovery: 0, concentration: 0, max_consec_down: 0, days_underwater: 0,
+}
+
 function computeScaledStats(
   curve: BookEquityPoint[],
   selected: Set<ComboKey>,
   contracts: Contracts,
-): PortfolioStats {
+): ScaledStats {
   const daily = curve.map((pt, i) => {
     const prev = curve[i - 1]
     let d = 0
@@ -62,26 +73,62 @@ function computeScaledStats(
     return d
   })
   const active = daily.filter(d => d !== 0)
-  if (active.length === 0)
-    return { pf: 0, sharpe: 0, max_dd_usd: 0, win_pct: 0, total_pts: 0, total_usd: 0, trade_days: 0 }
-  const wins   = active.filter(d => d > 0).reduce((a, b) => a + b, 0)
-  const losses = Math.abs(active.filter(d => d < 0).reduce((a, b) => a + b, 0))
+  if (active.length === 0) return ZERO_STATS
+
+  const ups    = active.filter(d => d > 0)
+  const downs  = active.filter(d => d < 0)
+  const wins   = ups.reduce((a, b) => a + b, 0)
+  const losses = Math.abs(downs.reduce((a, b) => a + b, 0))
   const pf     = losses > 0 ? Math.min(wins / losses, 99) : 99
   const total_usd = daily.reduce((a, b) => a + b, 0)
-  const total_pts = total_usd / 2
+  const avgUp  = ups.length ? wins / ups.length : 0
+  const avgDn  = downs.length ? losses / downs.length : 0
+  const payoff = avgDn > 0 ? avgUp / avgDn : 0
+
   const mean  = active.reduce((a, b) => a + b, 0) / active.length
   const std   = Math.sqrt(active.reduce((a, b) => a + (b - mean) ** 2, 0) / active.length)
   const sharpe = std > 0 ? (mean / std) * Math.sqrt(252) : 0
-  let cum = 0, peak = 0, maxDD = 0
-  for (const d of daily) { cum += d; peak = Math.max(peak, cum); maxDD = Math.max(maxDD, peak - cum) }
+  const downDev = Math.sqrt(active.reduce((a, d) => a + Math.min(d, 0) ** 2, 0) / active.length)
+  const sortino = downDev > 0 ? (mean / downDev) * Math.sqrt(252) : 0
+
+  let cum = 0, peak = 0, maxDD = 0, under = 0, curUnder = 0, runPeak = -Infinity
+  for (const d of daily) {
+    cum += d
+    peak = Math.max(peak, cum); maxDD = Math.max(maxDD, peak - cum)
+    runPeak = Math.max(runPeak, cum)
+    if (cum < runPeak) { curUnder++; under = Math.max(under, curUnder) } else curUnder = 0
+  }
+  // years from the curve's date span (for Calmar annualisation)
+  const spanDays = curve.length > 1
+    ? (new Date(curve[curve.length - 1].date).getTime() - new Date(curve[0].date).getTime()) / 86400000
+    : 365
+  const years  = Math.max(spanDays / 365.25, 0.05)
+  const calmar = maxDD > 0 ? (total_usd / years) / maxDD : 0
+  const recovery = maxDD > 0 ? total_usd / maxDD : 0
+
+  // up-day concentration: top-5% of green days as a share of gross gains
+  const sortedUps = [...ups].sort((a, b) => b - a)
+  const topN = Math.max(1, Math.floor(0.05 * active.length))
+  const concentration = wins > 0 ? 100 * sortedUps.slice(0, topN).reduce((a, b) => a + b, 0) / wins : 0
+  // longest run of consecutive down days
+  let mcd = 0, curMcd = 0
+  for (const d of active) { if (d < 0) { curMcd++; mcd = Math.max(mcd, curMcd) } else curMcd = 0 }
+
   return {
     pf:         parseFloat(pf.toFixed(2)),
     sharpe:     parseFloat(sharpe.toFixed(2)),
     max_dd_usd: parseFloat(maxDD.toFixed(0)),
-    win_pct:    parseFloat((100 * active.filter(d => d > 0).length / active.length).toFixed(1)),
-    total_pts:  parseFloat(total_pts.toFixed(1)),
+    win_pct:    parseFloat((100 * ups.length / active.length).toFixed(1)),
+    total_pts:  parseFloat((total_usd / 2).toFixed(1)),
     total_usd:  parseFloat(total_usd.toFixed(0)),
     trade_days: active.length,
+    payoff:     parseFloat(payoff.toFixed(1)),
+    sortino:    parseFloat(sortino.toFixed(2)),
+    calmar:     parseFloat(calmar.toFixed(2)),
+    recovery:   parseFloat(recovery.toFixed(2)),
+    concentration:   Math.round(concentration),
+    max_consec_down: mcd,
+    days_underwater: under,
   }
 }
 
@@ -139,6 +186,25 @@ function rateMetric(metric: "pf" | "sharpe" | "maxdd" | "winpct", value: number,
   }
 }
 
+// Higher-is-better ratio bands (match the Projection tab) + inverse risk bands.
+const RATING_LABELS = ["Poor", "Marginal", "Solid", "Strong", "Excellent"]
+const RATIO_BANDS: Record<string, [number, number, number, number]> = {
+  payoff: [3, 2, 1.5, 1], sortino: [4, 3, 2, 1], calmar: [3, 1, 0.5, 0.3], recovery: [5, 3, 2, 1],
+}
+function rateRatio(metric: keyof typeof RATIO_BANDS, v: number): Rating {
+  const [e, s, so, m] = RATIO_BANDS[metric]
+  const stars = v >= e ? 5 : v >= s ? 4 : v >= so ? 3 : v >= m ? 2 : 1
+  return { stars, label: RATING_LABELS[stars - 1] }
+}
+const RISK_BANDS: Record<string, [number, number, number, number]> = {
+  concentration: [25, 40, 55, 70], streak_days: [4, 7, 11, 16], underwater: [60, 180, 365, 730],
+}
+function rateRisk(metric: keyof typeof RISK_BANDS, v: number): Rating {
+  const [a, b, c, d] = RISK_BANDS[metric]
+  const stars = v < a ? 5 : v < b ? 4 : v < c ? 3 : v < d ? 2 : 1
+  return { stars, label: RATING_LABELS[stars - 1] }
+}
+
 function StarRow({ rating }: { rating: Rating }) {
   return (
     <div className="flex items-center gap-1 mt-1">
@@ -165,28 +231,56 @@ function StatPill({ label, value, color, rating }: {
   )
 }
 
-function ComboStats({ stats, capital }: { stats: PortfolioStats; capital: number }) {
+function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number }) {
   const dd = stats.max_dd_usd
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mt-4">
-      <StatPill label="Profit Factor" value={stats.pf?.toFixed(2) ?? "—"}
-                color={stats.pf >= 1.5 ? "var(--up)" : stats.pf >= 1.0 ? "#f59e0b" : "var(--down)"}
-                rating={rateMetric("pf", stats.pf ?? 0)} />
-      <StatPill label="Sharpe" value={stats.sharpe?.toFixed(2) ?? "—"}
-                color={stats.sharpe >= 2 ? "var(--up)" : stats.sharpe >= 1 ? "#f59e0b" : "var(--down)"}
-                rating={rateMetric("sharpe", stats.sharpe ?? 0)} />
-      <StatPill label="Max DD" value={`-$${Math.abs(dd).toLocaleString()}`}
-                color="var(--down)"
-                rating={rateMetric("maxdd", Math.abs(dd), capital)} />
-      <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`}
-                rating={rateMetric("winpct", stats.win_pct ?? 0)} />
-      <StatPill label="Total pts"
-                value={`${(stats.total_pts ?? 0) >= 0 ? "+" : ""}${stats.total_pts?.toFixed(1)}`}
-                color={(stats.total_pts ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
-      <StatPill label="Total $"
-                value={`${(stats.total_usd ?? 0) >= 0 ? "+" : ""}$${Math.abs(stats.total_usd ?? 0).toLocaleString()}`}
-                color={(stats.total_usd ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
-      <StatPill label="Trade days" value={`${stats.trade_days}`} />
+    <div className="space-y-2 mt-4">
+      {/* rated ratios — react to selection / scaling */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <StatPill label="Profit Factor" value={stats.pf?.toFixed(2) ?? "—"}
+                  color={stats.pf >= 1.5 ? "var(--up)" : stats.pf >= 1.0 ? "#f59e0b" : "var(--down)"}
+                  rating={rateMetric("pf", stats.pf ?? 0)} />
+        <StatPill label="Payoff" value={`${stats.payoff?.toFixed(1) ?? "—"}×`}
+                  color={stats.payoff >= 2 ? "var(--up)" : "var(--text)"}
+                  rating={rateRatio("payoff", stats.payoff ?? 0)} />
+        <StatPill label="Sharpe" value={stats.sharpe?.toFixed(2) ?? "—"}
+                  color={stats.sharpe >= 2 ? "var(--up)" : stats.sharpe >= 1 ? "#f59e0b" : "var(--down)"}
+                  rating={rateMetric("sharpe", stats.sharpe ?? 0)} />
+        <StatPill label="Sortino" value={stats.sortino?.toFixed(2) ?? "—"}
+                  color={stats.sortino >= 2 ? "var(--up)" : "var(--text)"}
+                  rating={rateRatio("sortino", stats.sortino ?? 0)} />
+        <StatPill label="Calmar" value={stats.calmar?.toFixed(2) ?? "—"}
+                  color={stats.calmar >= 1 ? "var(--up)" : "var(--text)"}
+                  rating={rateRatio("calmar", stats.calmar ?? 0)} />
+        <StatPill label="Recovery" value={`${stats.recovery?.toFixed(2) ?? "—"}×`}
+                  color={stats.recovery >= 3 ? "var(--up)" : "var(--text)"}
+                  rating={rateRatio("recovery", stats.recovery ?? 0)} />
+        <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`}
+                  rating={rateMetric("winpct", stats.win_pct ?? 0)} />
+        <StatPill label="Max DD" value={`-$${Math.abs(dd).toLocaleString()}`} color="var(--down)"
+                  rating={rateMetric("maxdd", Math.abs(dd), capital)} />
+      </div>
+
+      {/* totals */}
+      <div className="grid grid-cols-3 gap-2">
+        <StatPill label="Total $"
+                  value={`${(stats.total_usd ?? 0) >= 0 ? "+" : ""}$${Math.abs(stats.total_usd ?? 0).toLocaleString()}`}
+                  color={(stats.total_usd ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
+        <StatPill label="Total pts"
+                  value={`${(stats.total_pts ?? 0) >= 0 ? "+" : ""}${stats.total_pts?.toFixed(1)}`}
+                  color={(stats.total_pts ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
+        <StatPill label="Trade days" value={`${stats.trade_days}`} />
+      </div>
+
+      {/* risk profile — inverse rated (lower = better) */}
+      <div className="grid grid-cols-3 gap-2">
+        <StatPill label="Up-day concentration" value={`${stats.concentration}%`}
+                  rating={rateRisk("concentration", stats.concentration)} />
+        <StatPill label="Max consec down days" value={`${stats.max_consec_down}`}
+                  rating={rateRisk("streak_days", stats.max_consec_down)} />
+        <StatPill label="Longest drawdown" value={`${stats.days_underwater}d`}
+                  rating={rateRisk("underwater", stats.days_underwater)} />
+      </div>
     </div>
   )
 }
