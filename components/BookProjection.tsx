@@ -118,7 +118,7 @@ export default function BookProjection(
       <div className="rounded-xl overflow-hidden"
            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="grid grid-cols-2 sm:grid-cols-5">
-          <HeroStat label="Annual P&L"  value={fmt$(b.annual_usd, true)} sub={`${projections.n_strategies} strategies · 1 contract each`}
+          <HeroStat label="Avg Annual P&L (16y)" value={fmt$(b.annual_usd, true)} sub={`${projections.n_strategies} strategies · 1 contract each · 2010–2026 mean`}
                     color={b.annual_usd >= 0 ? UP : DOWN} />
           <HeroStat label="Sharpe"      value={b.sharpe.toFixed(2)} sub="annualised · combined"
                     color={b.sharpe >= 1.5 ? UP : "var(--text)"} />
