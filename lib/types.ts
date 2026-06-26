@@ -187,6 +187,26 @@ export interface YtdEquity {
   end: Record<string, number>
 }
 
+export interface Strategy16y {
+  win_rate: number
+  avg_win_usd: number
+  avg_loss_usd: number
+  payoff_ratio: number
+  profit_factor: number
+  expectancy_usd: number
+  sharpe: number
+  sortino: number
+  calmar: number
+  recovery_factor: number
+  max_dd_usd: number
+  max_consec_losses: number
+  concentration_top5_pct: number
+  days_underwater: number
+  n_trades: number
+  total_usd: number
+  monthly: MonthlyPoint[]
+}
+
 export interface Projections {
   as_of: string
   note: string
@@ -195,6 +215,7 @@ export interface Projections {
   book: ProjectionBook
   correlation: Record<string, Record<string, number>>
   ytd_equity?: YtdEquity
+  strategy_16y?: Record<string, Strategy16y>
 }
 
 export interface CommodityDemoStrategy {
