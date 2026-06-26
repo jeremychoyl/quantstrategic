@@ -5,6 +5,7 @@ import { DashboardData, BookEquityPoint, PortfolioStats, LiveDayCurve } from "@/
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import StrategyCard from "@/components/StrategyModal"
+import RatingLegend from "@/components/RatingLegend"
 
 const AnalysisChart = dynamic(() => import("@/components/AnalysisChart"), {
   ssr: false,
@@ -161,41 +162,36 @@ function rebase<T extends { combined: number }>(data: T[], capital: number): (T 
 }
 
 interface Rating { stars: number; label: string }
-function rateMetric(metric: "pf" | "sharpe" | "maxdd" | "winpct", value: number, capital = 25000): Rating {
+// Institutional (allocator due-diligence) bands. Labels: 1★ Weak → 5★ Elite.
+function rateMetric(metric: "pf" | "sharpe" | "maxdd", value: number, capital = 25000): Rating {
   switch (metric) {
     case "pf":
-      if (value >= 2.5) return { stars: 5, label: "Excellent" }
-      if (value >= 1.8) return { stars: 4, label: "Strong" }
-      if (value >= 1.3) return { stars: 3, label: "Solid" }
-      if (value >= 1.0) return { stars: 2, label: "Marginal" }
-      return { stars: 1, label: "Poor" }
+      if (value >= 3.0) return { stars: 5, label: "Elite" }
+      if (value >= 2.0) return { stars: 4, label: "Very strong" }
+      if (value >= 1.5) return { stars: 3, label: "Good" }
+      if (value >= 1.2) return { stars: 2, label: "Acceptable" }
+      return { stars: 1, label: "Weak" }
     case "sharpe":
-      if (value >= 3.0) return { stars: 5, label: "Excellent" }
-      if (value >= 2.0) return { stars: 4, label: "Strong" }
-      if (value >= 1.5) return { stars: 3, label: "Solid" }
-      if (value >= 1.0) return { stars: 2, label: "Marginal" }
-      return { stars: 1, label: "Poor" }
+      if (value >= 3.0) return { stars: 5, label: "Elite" }
+      if (value >= 2.0) return { stars: 4, label: "Very strong" }
+      if (value >= 1.5) return { stars: 3, label: "Good" }
+      if (value >= 1.0) return { stars: 2, label: "Acceptable" }
+      return { stars: 1, label: "Weak" }
     case "maxdd": {
       const pct = (value / capital) * 100
-      if (pct < 5)  return { stars: 5, label: "Excellent" }
-      if (pct < 10) return { stars: 4, label: "Strong" }
-      if (pct < 15) return { stars: 3, label: "Acceptable" }
-      if (pct < 25) return { stars: 2, label: "Elevated" }
-      return { stars: 1, label: "High" }
+      if (pct < 10) return { stars: 5, label: "Elite" }
+      if (pct < 15) return { stars: 4, label: "Very strong" }
+      if (pct < 20) return { stars: 3, label: "Good" }
+      if (pct < 30) return { stars: 2, label: "Acceptable" }
+      return { stars: 1, label: "Weak" }
     }
-    case "winpct":
-      if (value >= 60) return { stars: 5, label: "Excellent" }
-      if (value >= 55) return { stars: 4, label: "Strong" }
-      if (value >= 50) return { stars: 3, label: "Solid" }
-      if (value >= 45) return { stars: 2, label: "Marginal" }
-      return { stars: 1, label: "Low" }
   }
 }
 
 // Higher-is-better ratio bands (match the Projection tab) + inverse risk bands.
-const RATING_LABELS = ["Poor", "Marginal", "Solid", "Strong", "Excellent"]
+const RATING_LABELS = ["Weak", "Acceptable", "Good", "Very strong", "Elite"]
 const RATIO_BANDS: Record<string, [number, number, number, number]> = {
-  payoff: [3, 2, 1.5, 1], sortino: [4, 3, 2, 1], calmar: [3, 1, 0.5, 0.3], recovery: [5, 3, 2, 1],
+  payoff: [3, 2, 1.5, 1], sortino: [4, 3, 2, 1.5], calmar: [3, 2, 1, 0.5], recovery: [5, 3, 2, 1],
 }
 function rateRatio(metric: keyof typeof RATIO_BANDS, v: number): Rating {
   const [e, s, so, m] = RATIO_BANDS[metric]
@@ -263,8 +259,7 @@ function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number })
         <StatPill label="Recovery" value={`${stats.recovery?.toFixed(2) ?? "—"}×`}
                   color={stats.recovery >= 3 ? "var(--up)" : "var(--text)"}
                   rating={rateRatio("recovery", stats.recovery ?? 0)} />
-        <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`}
-                  rating={rateMetric("winpct", stats.win_pct ?? 0)} />
+        <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`} />
         <StatPill label="Max DD" value={`-$${Math.abs(dd).toLocaleString()}`} color="var(--down)"
                   rating={rateMetric("maxdd", Math.abs(dd), capital)} />
       </div>
@@ -583,6 +578,9 @@ export default function Configurator() {
             </div>
           </div>
         )}
+
+        {/* ★ rating reference scale */}
+        {data && <RatingLegend />}
       </main>
     </div>
   )
