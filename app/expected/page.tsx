@@ -5,6 +5,7 @@ import { DashboardData, Projections, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import BookProjection, { CorrelationMatrix } from "@/components/BookProjection"
+import RatingLegend from "@/components/RatingLegend"
 
 const PerfEquityChart = dynamic(
   () => import("@/components/PerfCharts").then(m => ({ default: m.PerfEquityChart })),
@@ -41,14 +42,15 @@ const fmt$ = (v: number, sign = false) => {
   return `${s}$${Math.abs(Math.round(v)).toLocaleString()}`
 }
 type Rating = { stars: number; label: string }
-const RATING_LABELS = ["Poor", "Marginal", "Solid", "Strong", "Excellent"]   // index = stars-1
-// Industry-standard bands [excellent, strong, solid, marginal] → 5/4/3/2★, else 1★.
+const RATING_LABELS = ["Weak", "Acceptable", "Good", "Very strong", "Elite"]   // index = stars-1
+// Institutional (allocator due-diligence) bands [elite, very-strong, good, acceptable]
+// → 5/4/3/2★, else 1★ (Weak). Calmar/payoff are house scales (no published tier list).
 const RATING_BANDS: Record<string, [number, number, number, number]> = {
-  pf:       [2.5, 1.8, 1.3, 1.0],
+  pf:       [3.0, 2.0, 1.5, 1.2],
   payoff:   [3.0, 2.0, 1.5, 1.0],
   sharpe:   [3.0, 2.0, 1.5, 1.0],
-  sortino:  [4.0, 3.0, 2.0, 1.0],
-  calmar:   [3.0, 1.0, 0.5, 0.3],
+  sortino:  [4.0, 3.0, 2.0, 1.5],
+  calmar:   [3.0, 2.0, 1.0, 0.5],
   recovery: [5.0, 3.0, 2.0, 1.0],
 }
 function rateRatio(metric: keyof typeof RATING_BANDS, v: number): Rating {
@@ -341,6 +343,9 @@ export default function Expected() {
 
         {/* Strategy correlation — always at the very bottom */}
         {data?.projections && <CorrelationMatrix projections={data.projections} />}
+
+        {/* ★ rating reference scale */}
+        {data && <RatingLegend />}
       </main>
     </div>
   )
