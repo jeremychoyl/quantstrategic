@@ -61,17 +61,23 @@ const ZERO_STATS: ScaledStats = {
   payoff: 0, sortino: 0, calmar: 0, recovery: 0, concentration: 0, max_consec_down: 0, days_underwater: 0,
 }
 
-function computeScaledStats(
+// Daily P&L (USD) of the scaled combination, with dates — diffs computed on the
+// FULL curve so a later period-filter keeps each day's true daily change.
+function scaledDaily(
   curve: BookEquityPoint[],
   selected: Set<ComboKey>,
   contracts: Contracts,
-): ScaledStats {
-  const daily = curve.map((pt, i) => {
+): { date: string; d: number }[] {
+  return curve.map((pt, i) => {
     const prev = curve[i - 1]
     let d = 0
     for (const k of COMBOS) if (selected.has(k)) d += ((pt[k] ?? 0) - (prev?.[k] ?? 0)) * contracts[k]
-    return d
+    return { date: pt.date, d }
   })
+}
+
+function statsFromDaily(rows: { date: string; d: number }[]): ScaledStats {
+  const daily = rows.map(r => r.d)
   const active = daily.filter(d => d !== 0)
   if (active.length === 0) return ZERO_STATS
 
@@ -99,8 +105,8 @@ function computeScaledStats(
     if (cum < runPeak) { curUnder++; under = Math.max(under, curUnder) } else curUnder = 0
   }
   // years from the curve's date span (for Calmar annualisation)
-  const spanDays = curve.length > 1
-    ? (new Date(curve[curve.length - 1].date).getTime() - new Date(curve[0].date).getTime()) / 86400000
+  const spanDays = rows.length > 1
+    ? (new Date(rows[rows.length - 1].date).getTime() - new Date(rows[0].date).getTime()) / 86400000
     : 365
   const years  = Math.max(spanDays / 365.25, 0.05)
   const calmar = maxDD > 0 ? (total_usd / years) / maxDD : 0
@@ -381,10 +387,11 @@ export default function Configurator() {
   )
   const filtered  = useMemo(() => filterCurve(scaledCurve, period, from, to), [scaledCurve, period, from, to])
   const rebased   = useMemo(() => rebase(filtered, cap), [filtered, cap])
-  const stats     = useMemo(
-    () => computeScaledStats(ytdSeries, selected, contracts),
-    [ytdSeries, selected, contracts],
-  )
+  // stats now respect the period selector: build daily diffs on the full curve,
+  // then filter to the chosen window before computing.
+  const dailyRows = useMemo(() => scaledDaily(ytdSeries, selected, contracts), [ytdSeries, selected, contracts])
+  const statRows  = useMemo(() => filterCurve(dailyRows, period, from, to), [dailyRows, period, from, to])
+  const stats     = useMemo(() => statsFromDaily(statRows), [statRows])
 
   const liveCurve = data?.live_trades?.daily_curve ?? []
   const isScaled  = COMBOS.some(k => selected.has(k) && (contracts[k] ?? 1) > 1)
