@@ -217,7 +217,9 @@ export interface Projections {
   correlation: Record<string, Record<string, number>>
   ytd_equity?: YtdEquity
   strategy_16y?: Record<string, Strategy16y>
+  strategy_ytd?: Record<string, Strategy16y>
   book_16y?: Strategy16y
+  book_ytd?: Strategy16y
 }
 
 export interface CommodityDemoStrategy {

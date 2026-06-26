@@ -182,10 +182,42 @@ function BookStatBlock({ b }: { b: Strategy16y }) {
   )
 }
 
+// Rated trade-basis stat grid — shared by the YTD (top) and 16y (bottom) halves.
+function StratStatGrid({ s }: { s: Strategy16y }) {
+  return (
+    <div className="rounded-xl overflow-hidden"
+         style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="grid grid-cols-2 sm:grid-cols-5" style={{ borderBottom: "1px solid var(--border)" }}>
+        <KStat label="Win rate"      value={`${s.win_rate}%`} sub="hit rate" />
+        <KStat label="Avg winner"    value={fmt$(s.avg_win_usd, true)} sub="per win" color={UP} />
+        <KStat label="Avg loser"     value={fmt$(s.avg_loss_usd)} sub="per loss" color={DOWN} />
+        <KStat label="Payoff ratio"  value={`${s.payoff_ratio}×`} sub="avg win ÷ avg loss"
+               color={s.payoff_ratio >= 2 ? UP : "var(--text)"} rating={rateRatio("payoff", s.payoff_ratio)} />
+        <KStat label="Profit factor" value={s.profit_factor.toFixed(2)} sub="gross win ÷ gross loss"
+               color={s.profit_factor >= 1.5 ? UP : s.profit_factor >= 1 ? "var(--text)" : DOWN}
+               rating={rateRatio("pf", s.profit_factor)} last />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-5">
+        <KStat label="Expectancy"      value={fmt$(s.expectancy_usd, true)} sub="per trade"
+               color={s.expectancy_usd >= 0 ? UP : DOWN} />
+        <KStat label="Sharpe"          value={s.sharpe.toFixed(2)} sub="annualised"
+               color={s.sharpe >= 1.5 ? UP : "var(--text)"} rating={rateRatio("sharpe", s.sharpe)} />
+        <KStat label="Sortino"         value={s.sortino.toFixed(2)} sub="downside only"
+               color={s.sortino >= 2 ? UP : "var(--text)"} rating={rateRatio("sortino", s.sortino)} />
+        <KStat label="Calmar"          value={s.calmar.toFixed(2)} sub="CAGR ÷ max DD"
+               color={s.calmar >= 1 ? UP : "var(--text)"} rating={rateRatio("calmar", s.calmar)} />
+        <KStat label="Recovery factor" value={`${s.recovery_factor}×`} sub="net ÷ max DD"
+               color={s.recovery_factor >= 3 ? UP : "var(--text)"}
+               rating={rateRatio("recovery", s.recovery_factor)} last />
+      </div>
+    </div>
+  )
+}
+
 function StrategyProjectionPanel({ projections, k }: { projections: Projections; k: StrategyKey }) {
   const s = projections.per_strategy.find(p => p.name === PER_STRATEGY_NAME[k])
-  const ytdEnd = projections.ytd_equity?.end?.[k]
   const f = projections.strategy_16y?.[k]
+  const y = projections.strategy_ytd?.[k]
   return (
     <div className="space-y-5">
       {/* ── TOP HALF · 2026 YTD ── */}
@@ -194,6 +226,14 @@ function StrategyProjectionPanel({ projections, k }: { projections: Projections;
           <h2 className="text-sm font-bold">2026 YTD</h2>
           {s && <span className="text-xs" style={{ color: "var(--muted)" }}>{s.instrument} · {s.direction.replace("-", " ")}</span>}
         </div>
+        {y && (
+          <>
+            <StratStatGrid s={y} />
+            <p className="text-[11px] -mt-1" style={{ color: "var(--muted)" }}>
+              {y.n_trades} trades in 2026 · net {fmt$(y.total_usd, true)} · small-sample — ratings noisier than the 16y block below
+            </p>
+          </>
+        )}
         {projections.ytd_equity && <BookEquityChart eq={projections.ytd_equity} focus={k} />}
       </div>
 
@@ -207,33 +247,7 @@ function StrategyProjectionPanel({ projections, k }: { projections: Projections;
             </span>
           </div>
 
-          {/* base 6 + 4 ratios */}
-          <div className="rounded-xl overflow-hidden"
-               style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="grid grid-cols-2 sm:grid-cols-5" style={{ borderBottom: "1px solid var(--border)" }}>
-              <KStat label="Win rate"      value={`${f.win_rate}%`} sub="hit rate" />
-              <KStat label="Avg winner"    value={fmt$(f.avg_win_usd, true)} sub="per win" color={UP} />
-              <KStat label="Avg loser"     value={fmt$(f.avg_loss_usd)} sub="per loss" color={DOWN} />
-              <KStat label="Payoff ratio"  value={`${f.payoff_ratio}×`} sub="avg win ÷ avg loss"
-                     color={f.payoff_ratio >= 2 ? UP : "var(--text)"} rating={rateRatio("payoff", f.payoff_ratio)} />
-              <KStat label="Profit factor" value={f.profit_factor.toFixed(2)} sub="gross win ÷ gross loss"
-                     color={f.profit_factor >= 1.5 ? UP : f.profit_factor >= 1 ? "var(--text)" : DOWN}
-                     rating={rateRatio("pf", f.profit_factor)} last />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5">
-              <KStat label="Expectancy"      value={`${fmt$(f.expectancy_usd, true)}`} sub="per trade"
-                     color={f.expectancy_usd >= 0 ? UP : DOWN} />
-              <KStat label="Sharpe"          value={f.sharpe.toFixed(2)} sub="annualised"
-                     color={f.sharpe >= 1.5 ? UP : "var(--text)"} rating={rateRatio("sharpe", f.sharpe)} />
-              <KStat label="Sortino"         value={f.sortino.toFixed(2)} sub="downside only"
-                     color={f.sortino >= 2 ? UP : "var(--text)"} rating={rateRatio("sortino", f.sortino)} />
-              <KStat label="Calmar"          value={f.calmar.toFixed(2)} sub="CAGR ÷ max DD"
-                     color={f.calmar >= 1 ? UP : "var(--text)"} rating={rateRatio("calmar", f.calmar)} />
-              <KStat label="Recovery factor" value={`${f.recovery_factor}×`} sub="net ÷ max DD"
-                     color={f.recovery_factor >= 3 ? UP : "var(--text)"}
-                     rating={rateRatio("recovery", f.recovery_factor)} last />
-            </div>
-          </div>
+          <StratStatGrid s={f} />
 
           <Card title="16-Year Equity Curve" sub="Monthly cumulative P&L · 2010–2026 · 1 contract">
             <PerfEquityChart data={f.monthly} />
