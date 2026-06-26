@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import { DashboardData, LiveTrade, LiveDayCurve } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
+import CommodityDemo from "@/components/CommodityDemo"
 
 const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
   ssr: false,
@@ -238,6 +239,14 @@ export default function Details() {
             <p><span className="font-semibold">C · vs Expected</span>: Actual P&L minus backtest expectancy. Converges to 0 over many trades.</p>
           </div>
         </div>
+
+        {/* Gold / Crude demo sandbox — separate block, isolated from the live MNQ log
+            above (guarded: renders nothing if the key is absent) */}
+        {data?.commodity_demo && (
+          <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
+            <CommodityDemo demo={data.commodity_demo} />
+          </div>
+        )}
       </main>
     </div>
   )
