@@ -56,6 +56,18 @@ function rateRatio(metric: keyof typeof RATING_BANDS, v: number): Rating {
   const stars = v >= e ? 5 : v >= s ? 4 : v >= so ? 3 : v >= m ? 2 : 1
   return { stars, label: RATING_LABELS[stars - 1] }
 }
+// Inverse rating for risk metrics — LOWER is better. Bands [5★ if <a … 1★ if ≥d].
+const RISK_BANDS: Record<string, [number, number, number, number]> = {
+  concentration: [25, 40, 55, 70],    // % of profit in top-5% of trades/days
+  streak_trades: [6, 10, 16, 25],     // consecutive losing trades (per strategy)
+  streak_days:   [4, 7, 11, 16],      // consecutive losing days (book)
+  underwater:    [60, 180, 365, 730], // trading days below a prior peak
+}
+function rateInverse(metric: keyof typeof RISK_BANDS, v: number): Rating {
+  const [a, b, c, d] = RISK_BANDS[metric]
+  const stars = v < a ? 5 : v < b ? 4 : v < c ? 3 : v < d ? 2 : 1
+  return { stars, label: RATING_LABELS[stars - 1] }
+}
 function StarRow({ rating }: { rating: Rating }) {
   return (
     <div className="flex items-center gap-1 mt-0.5">
@@ -96,12 +108,15 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
   )
 }
 
-function RiskTile({ label, value, caption }: { label: string; value: string; caption: string }) {
+function RiskTile({ label, value, caption, rating }: {
+  label: string; value: string; caption: string; rating?: Rating
+}) {
   return (
     <div className="rounded-xl p-4 flex flex-col gap-2"
          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
       <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>{label}</p>
       <p className="text-2xl font-black tabular-nums" style={{ color: "#fbbf24" }}>{value}</p>
+      {rating && <StarRow rating={rating} />}
       <p className="text-xs leading-snug" style={{ color: "var(--muted)" }}>{caption}</p>
     </div>
   )
@@ -153,10 +168,13 @@ function BookStatBlock({ b }: { b: Strategy16y }) {
         <h3 className="text-sm font-bold mb-2">Book risk profile</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <RiskTile label="Up-day concentration" value={`${b.concentration_top5_pct}%`}
+            rating={rateInverse("concentration", b.concentration_top5_pct)}
             caption={`Top 5% of green days make ${b.concentration_top5_pct}% of gross gains — even diversified, the book leans on its best days.`} />
           <RiskTile label="Max consecutive down days" value={`${b.max_consec_losses}`}
+            rating={rateInverse("streak_days", b.max_consec_losses)}
             caption={`Longest run of losing days for the whole book. Diversification shortens it vs any single strategy, but expect red stretches.`} />
           <RiskTile label="Longest drawdown" value={`${b.days_underwater}d`}
+            rating={rateInverse("underwater", b.days_underwater)}
             caption={`Trading days the book spent below a prior peak (worst DD ${fmt$(b.max_dd_usd)}).`} />
         </div>
       </div>
@@ -226,10 +244,13 @@ function StrategyProjectionPanel({ projections, k }: { projections: Projections;
             <h3 className="text-sm font-bold mb-2">Risk profile — read before allocating</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <RiskTile label="Profit concentration" value={`${f.concentration_top5_pct}%`}
+                rating={rateInverse("concentration", f.concentration_top5_pct)}
                 caption={`Top 5% of trades make ${f.concentration_top5_pct}% of gross profit — the edge leans on rare big moves. Miss a few (slippage / downtime / a skipped signal) and the year erodes.`} />
               <RiskTile label="Max consecutive losses" value={`${f.max_consec_losses}`}
+                rating={rateInverse("streak_trades", f.max_consec_losses)}
                 caption={`Longest losing streak. Expect long red stretches before a winner — the real danger is abandoning the strategy mid-streak.`} />
               <RiskTile label="Longest drawdown" value={`${f.days_underwater}d`}
+                rating={rateInverse("underwater", f.days_underwater)}
                 caption={`Trading days below a prior equity peak (worst DD ${fmt$(f.max_dd_usd)}). You have to be able to hold through it.`} />
             </div>
           </div>
