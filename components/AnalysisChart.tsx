@@ -1,11 +1,14 @@
 "use client"
-import { EquityPoint } from "@/lib/types"
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   Tooltip, CartesianGrid, ReferenceLine,
 } from "recharts"
 
-export default function AnalysisChart({ data }: { data: EquityPoint[] }) {
+// Minimal shape — the chart only reads date + combined_pct, so any curve
+// (live MNQ EquityPoint or the 5-strategy BookEquityPoint) is accepted.
+type CurvePoint = { date: string; combined_pct?: number }
+
+export default function AnalysisChart({ data }: { data: CurvePoint[] }) {
   if (!data.length) return (
     <p className="text-sm mt-4" style={{ color: "var(--muted)" }}>No data for selected period</p>
   )

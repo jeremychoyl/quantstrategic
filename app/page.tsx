@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData } from "@/lib/types"
+import { DashboardData, LiveDayCurve } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import ReturnsHero from "@/components/ReturnsHero"
@@ -54,6 +54,29 @@ export default function Overview() {
   const sum     = data?.live_trades?.summary
   const curve   = data?.live_trades?.daily_curve ?? []
   const hasLive = curve.length > 0
+
+  // Projected book (incl. demo) — from the cached YTD equity curve
+  const ytd  = data?.projections?.ytd_equity
+  const ser  = ytd?.series ?? []
+  const end  = ytd?.end
+  const demoCurve: LiveDayCurve[] = ser.map((p, i) => {
+    const cum  = (p.gold ?? 0) + (p.crude ?? 0)
+    const prev = ser[i - 1]
+    const pcum = prev ? (prev.gold ?? 0) + (prev.crude ?? 0) : 0
+    return { date: p.date, cum_usd: cum, day_pnl_usd: cum - pcum, cum_pts: 0, day_pnl_pts: 0 }
+  })
+  const last5 = (pick: (p: typeof ser[number]) => number) => {
+    if (!ser.length) return 0
+    const lastV  = pick(ser[ser.length - 1])
+    const backV  = ser.length >= 6 ? pick(ser[ser.length - 6]) : 0
+    return lastV - backV
+  }
+  const demoVal = (p: typeof ser[number]) => (p.gold ?? 0) + (p.crude ?? 0)
+  const bookYtd  = end?.combined ?? 0
+  const demoYtd  = (end?.gold ?? 0) + (end?.crude ?? 0)
+  const liveYtd  = (end?.orb ?? 0) + (end?.ema ?? 0) + (end?.dc ?? 0)
+  const book5d   = last5(p => p.combined ?? 0)
+  const demo5d   = last5(demoVal)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -136,8 +159,49 @@ export default function Overview() {
               </div>
             </div>
 
-            {/* Net returns */}
+            {/* Net returns (live actual) */}
             <ReturnsHero returns={data.net_returns} />
+
+            {/* Projected book — YTD incl. demo (backtest/OOS basis) */}
+            {ytd && (
+              <div>
+                <h2 className="text-sm font-bold mb-1">Projected Book — 2026 YTD (incl. demo)</h2>
+                <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
+                  Backtest/OOS · 1 contract each · 3 live MNQ + 2 demo (Gold/Crude) · {ytd.since} → {ytd.through}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <LiveStatChip label="Book YTD"        value={fmt$(bookYtd, true)} color={bookYtd >= 0 ? UP : DOWN} />
+                  <LiveStatChip label="Book last 5 days" value={fmt$(book5d, true)} color={book5d >= 0 ? UP : DOWN} />
+                  <LiveStatChip label="Live MNQ YTD"    value={fmt$(liveYtd, true)} color={liveYtd >= 0 ? UP : DOWN} />
+                  <LiveStatChip label="Demo YTD"        value={fmt$(demoYtd, true)} color={demoYtd >= 0 ? UP : DOWN} />
+                </div>
+              </div>
+            )}
+
+            {/* Demo Trades — projected (Gold + Crude) */}
+            {ytd && demoCurve.length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="rounded-xl p-5"
+                     style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <h2 className="text-sm font-bold mb-1">Demo Trades — Equity Curve</h2>
+                  <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+                    Gold + Crude (projected) · cumulative · isolated from the live MNQ book
+                  </p>
+                  <LiveCurveChart data={demoCurve} />
+                </div>
+                <div className="rounded-xl p-5"
+                     style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <h2 className="text-sm font-bold mb-1">Demo Trades — P&amp;L</h2>
+                  <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>Projected · 1 micro each</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <LiveStatChip label="Demo YTD"        value={fmt$(demoYtd, true)} color={demoYtd >= 0 ? UP : DOWN} />
+                    <LiveStatChip label="Demo last 5 days" value={fmt$(demo5d, true)} color={demo5d >= 0 ? UP : DOWN} />
+                    <LiveStatChip label="Gold (MGC)"      value={fmt$(end?.gold ?? 0, true)}  color={(end?.gold ?? 0) >= 0 ? UP : DOWN} />
+                    <LiveStatChip label="Crude (MCL)"     value={fmt$(end?.crude ?? 0, true)} color={(end?.crude ?? 0) >= 0 ? UP : DOWN} />
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>

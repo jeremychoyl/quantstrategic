@@ -21,22 +21,27 @@ const LEGS = [
   { key: "crude", label: "Crude (MCL)", color: "#ff7849" },
 ] as const
 
-export default function BookEquityChart({ eq }: { eq: YtdEquity }) {
+type LegKey = (typeof LEGS)[number]["key"]
+
+export default function BookEquityChart({ eq, focus }: { eq: YtdEquity; focus?: LegKey }) {
   const series = eq?.series ?? []
   const end = eq?.end ?? {}
-  const combinedEnd = end.combined ?? 0
+  const focusLeg = focus ? LEGS.find(l => l.key === focus) : undefined
+  const headline = focus ? (end[focus] ?? 0) : (end.combined ?? 0)
 
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h2 className="text-base font-black tracking-tight">Book Equity — 2026 YTD</h2>
+        <h2 className="text-base font-black tracking-tight">
+          {focusLeg ? `${focusLeg.label} — 2026 YTD` : "Book Equity — 2026 YTD"}
+        </h2>
         <span className="text-sm font-bold tabular-nums"
-              style={{ color: combinedEnd >= 0 ? "#00d4aa" : "#ff4d6d" }}>
-          {fmt$(combinedEnd)}
+              style={{ color: headline >= 0 ? "#00d4aa" : "#ff4d6d" }}>
+          {fmt$(headline)}
         </span>
       </div>
       <p className="text-xs -mt-1" style={{ color: "var(--muted)" }}>
-        5 strategies · 1 contract each · {eq?.since} → {eq?.through}
+        {focusLeg ? "1 contract" : "5 strategies · 1 contract each"} · {eq?.since} → {eq?.through}
       </p>
 
       {series.length === 0 ? (
@@ -64,13 +69,20 @@ export default function BookEquityChart({ eq }: { eq: YtdEquity }) {
                 formatter={(v: unknown, name: unknown) => [fmt$(Number(v)), String(name)]}
               />
               <ReferenceLine y={0} stroke="#374151" strokeDasharray="4 2" />
-              <Area type="monotone" dataKey="combined" name="Combined book"
-                    stroke="#e8e8ee" strokeWidth={2.6} fill="url(#bookGrad)" dot={false} />
-              {LEGS.map(l => (
-                <Line key={l.key} type="monotone" dataKey={l.key} name={l.label}
-                      stroke={l.color} strokeWidth={1.4} dot={false} opacity={0.9} />
-              ))}
-              <Legend wrapperStyle={{ fontSize: 11 }} iconType="plainline" />
+              {focusLeg ? (
+                <Line type="monotone" dataKey={focusLeg.key} name={focusLeg.label}
+                      stroke={focusLeg.color} strokeWidth={2.6} dot={false} />
+              ) : (
+                <>
+                  <Area type="monotone" dataKey="combined" name="Combined book"
+                        stroke="#e8e8ee" strokeWidth={2.6} fill="url(#bookGrad)" dot={false} />
+                  {LEGS.map(l => (
+                    <Line key={l.key} type="monotone" dataKey={l.key} name={l.label}
+                          stroke={l.color} strokeWidth={1.4} dot={false} opacity={0.9} />
+                  ))}
+                  <Legend wrapperStyle={{ fontSize: 11 }} iconType="plainline" />
+                </>
+              )}
             </ComposedChart>
           </ResponsiveContainer>
           <p className="text-[11px] mt-2" style={{ color: "var(--muted)" }}>{eq?.note}</p>

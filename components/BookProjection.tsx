@@ -57,9 +57,55 @@ function corrColor(v: number): string {
   return a < 0.15 ? `rgba(0,212,170,${0.10 + a})` : `rgba(255,77,109,${0.10 + a * 0.5})`
 }
 
-export default function BookProjection({ projections }: { projections: Projections }) {
-  const b = projections.book
+// Standalone correlation matrix — exported so the Projection tab can render it
+// at the very bottom (rather than inline within BookProjection).
+export function CorrelationMatrix({ projections }: { projections: Projections }) {
   const names = projections.per_strategy.map(s => s.name)
+  if (names.length === 0) return null
+  return (
+    <div className="rounded-xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <h3 className="text-sm font-bold mb-0.5">Strategy Correlation</h3>
+      <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
+        Low cross-correlation drives the book&apos;s diversification benefit
+      </p>
+      <div className="overflow-x-auto">
+        <table className="border-collapse">
+          <thead>
+            <tr>
+              <th className="p-1.5" />
+              {names.map(n => (
+                <th key={n} className="p-1.5 text-[11px] font-semibold" style={{ color: "var(--muted)" }}>{n}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {names.map(row => (
+              <tr key={row}>
+                <td className="p-1.5 text-[11px] font-semibold text-right pr-3" style={{ color: "var(--muted)" }}>{row}</td>
+                {names.map(col => {
+                  const v = projections.correlation?.[row]?.[col] ?? 0
+                  return (
+                    <td key={col} className="p-0.5">
+                      <div className="w-12 h-9 rounded flex items-center justify-center text-xs font-bold tabular-nums"
+                           style={{ background: corrColor(v), color: "var(--text)" }}>
+                        {v.toFixed(2)}
+                      </div>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default function BookProjection(
+  { projections, hideCorrelation }: { projections: Projections; hideCorrelation?: boolean },
+) {
+  const b = projections.book
 
   return (
     <div className="space-y-4">
@@ -153,45 +199,8 @@ export default function BookProjection({ projections }: { projections: Projectio
         </div>
       </div>
 
-      {/* Correlation matrix */}
-      {names.length > 0 && (
-        <div className="rounded-xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-          <h3 className="text-sm font-bold mb-0.5">Strategy Correlation</h3>
-          <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
-            Low cross-correlation drives the book&apos;s diversification benefit
-          </p>
-          <div className="overflow-x-auto">
-            <table className="border-collapse">
-              <thead>
-                <tr>
-                  <th className="p-1.5" />
-                  {names.map(n => (
-                    <th key={n} className="p-1.5 text-[11px] font-semibold" style={{ color: "var(--muted)" }}>{n}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {names.map(row => (
-                  <tr key={row}>
-                    <td className="p-1.5 text-[11px] font-semibold text-right pr-3" style={{ color: "var(--muted)" }}>{row}</td>
-                    {names.map(col => {
-                      const v = projections.correlation?.[row]?.[col] ?? 0
-                      return (
-                        <td key={col} className="p-0.5">
-                          <div className="w-12 h-9 rounded flex items-center justify-center text-xs font-bold tabular-nums"
-                               style={{ background: corrColor(v), color: "var(--text)" }}>
-                            {v.toFixed(2)}
-                          </div>
-                        </td>
-                      )
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* Correlation matrix — suppressed when the page renders it separately at the bottom */}
+      {!hideCorrelation && <CorrelationMatrix projections={projections} />}
     </div>
   )
 }
