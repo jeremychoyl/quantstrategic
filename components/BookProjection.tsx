@@ -128,7 +128,9 @@ export default function BookProjection(
                     color={b.calmar >= 1 ? UP : "var(--text)"} />
           <HeroStat label="Return on Capital"
                     value={`${b.return_on_capital_pct.toFixed(1)}%`}
-                    sub={`on ${fmt$(b.capital_estimate_usd)} capital`}
+                    sub={b.margin_usd != null
+                      ? `on ${fmt$(b.capital_estimate_usd)} (margin ${fmt$(b.margin_usd)} + DD ${fmt$(b.dd_buffer_usd ?? 0)})`
+                      : `on ${fmt$(b.capital_estimate_usd)} capital`}
                     color={b.return_on_capital_pct >= 0 ? UP : DOWN} last />
         </div>
       </div>
