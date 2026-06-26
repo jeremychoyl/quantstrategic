@@ -205,6 +205,7 @@ export interface Strategy16y {
   n_trades: number
   total_usd: number
   monthly: MonthlyPoint[]
+  basis?: string   // "daily" for the combined book block (per-trading-day stats)
 }
 
 export interface Projections {
@@ -216,6 +217,7 @@ export interface Projections {
   correlation: Record<string, Record<string, number>>
   ytd_equity?: YtdEquity
   strategy_16y?: Record<string, Strategy16y>
+  book_16y?: Strategy16y
 }
 
 export interface CommodityDemoStrategy {

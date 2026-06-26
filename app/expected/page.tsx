@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData, Projections } from "@/lib/types"
+import { DashboardData, Projections, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import BookProjection, { CorrelationMatrix } from "@/components/BookProjection"
@@ -73,6 +73,62 @@ function RiskTile({ label, value, caption }: { label: string; value: string; cap
       <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>{label}</p>
       <p className="text-2xl font-black tabular-nums" style={{ color: "#fbbf24" }}>{value}</p>
       <p className="text-xs leading-snug" style={{ color: "var(--muted)" }}>{caption}</p>
+    </div>
+  )
+}
+
+// Combined-book 16y block (All tab). Stats are per-TRADING-DAY (the book has no
+// unified trades), so labels differ from the per-strategy trade-basis block.
+function BookStatBlock({ b }: { b: Strategy16y }) {
+  return (
+    <div className="space-y-4 pt-2 border-t" style={{ borderColor: "var(--border)" }}>
+      <div className="flex items-baseline justify-between">
+        <h2 className="text-sm font-bold">Combined Book — Full 16-Year Backtest</h2>
+        <span className="text-xs" style={{ color: "var(--muted)" }}>
+          {b.n_trades.toLocaleString()} trading days · 2010–2026 · net {fmt$(b.total_usd, true)} · per-day basis
+        </span>
+      </div>
+
+      <div className="rounded-xl overflow-hidden"
+           style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <div className="grid grid-cols-2 sm:grid-cols-5" style={{ borderBottom: "1px solid var(--border)" }}>
+          <KStat label="Daily win rate" value={`${b.win_rate}%`} sub="% profitable days" />
+          <KStat label="Avg up day"      value={fmt$(b.avg_win_usd, true)} sub="per green day" color={UP} />
+          <KStat label="Avg down day"    value={fmt$(b.avg_loss_usd)} sub="per red day" color={DOWN} />
+          <KStat label="Daily payoff"    value={`${b.payoff_ratio}×`} sub="up ÷ down day"
+                 color={b.payoff_ratio >= 2 ? UP : "var(--text)"} />
+          <KStat label="Profit factor"   value={b.profit_factor.toFixed(2)} sub="gross up ÷ gross down"
+                 color={b.profit_factor >= 1.5 ? UP : DOWN} last />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5">
+          <KStat label="Daily expectancy" value={fmt$(b.expectancy_usd, true)} sub="mean / day"
+                 color={b.expectancy_usd >= 0 ? UP : DOWN} />
+          <KStat label="Sharpe"           value={b.sharpe.toFixed(2)} sub="annualised"
+                 color={b.sharpe >= 1.5 ? UP : "var(--text)"} />
+          <KStat label="Sortino"          value={b.sortino.toFixed(2)} sub="downside only"
+                 color={b.sortino >= 2 ? UP : "var(--text)"} />
+          <KStat label="Calmar"           value={b.calmar.toFixed(2)} sub="CAGR ÷ max DD"
+                 color={b.calmar >= 1 ? UP : "var(--text)"} />
+          <KStat label="Recovery factor"  value={`${b.recovery_factor}×`} sub="net ÷ max DD"
+                 color={b.recovery_factor >= 3 ? UP : "var(--text)"} last />
+        </div>
+      </div>
+
+      <Card title="16-Year Book Equity Curve" sub="Monthly cumulative P&L · all 5 · 1 contract each">
+        <PerfEquityChart data={b.monthly} />
+      </Card>
+
+      <div>
+        <h3 className="text-sm font-bold mb-2">Book risk profile</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <RiskTile label="Up-day concentration" value={`${b.concentration_top5_pct}%`}
+            caption={`Top 5% of green days make ${b.concentration_top5_pct}% of gross gains — even diversified, the book leans on its best days.`} />
+          <RiskTile label="Max consecutive down days" value={`${b.max_consec_losses}`}
+            caption={`Longest run of losing days for the whole book. Diversification shortens it vs any single strategy, but expect red stretches.`} />
+          <RiskTile label="Longest drawdown" value={`${b.days_underwater}d`}
+            caption={`Trading days the book spent below a prior peak (worst DD ${fmt$(b.max_dd_usd)}).`} />
+        </div>
+      </div>
     </div>
   )
 }
@@ -205,6 +261,7 @@ export default function Expected() {
           <>
             <BookProjection projections={data.projections} hideCorrelation />
             {data.projections.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
+            {data.projections.book_16y && <BookStatBlock b={data.projections.book_16y} />}
           </>
         )}
 
