@@ -3,9 +3,11 @@ import { Strategy } from "@/lib/types"
 import { useState } from "react"
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string; border: string }> = {
-  active:  { bg: "#1a2a24", color: "var(--up)",   label: "● ACTIVE",  border: "var(--accent)" },
-  shelved: { bg: "#2a2212", color: "#f59e0b",       label: "⏸ SHELVED", border: "#78350f" },
-  default: { bg: "#1e1e2e", color: "var(--muted)",  label: "INACTIVE",  border: "var(--border)" },
+  active:    { bg: "#1a2a24", color: "var(--up)",      label: "● ACTIVE",    border: "var(--accent)" },
+  demo:      { bg: "#2a2810", color: "#fbbf24",        label: "◐ DEMO",      border: "#854d0e" },
+  validated: { bg: "#16172a", color: "var(--accent2)", label: "✓ VALIDATED", border: "#3b337a" },
+  shelved:   { bg: "#2a2212", color: "#f59e0b",        label: "⏸ SHELVED",   border: "#78350f" },
+  default:   { bg: "#1e1e2e", color: "var(--muted)",   label: "INACTIVE",    border: "var(--border)" },
 }
 
 export default function StrategyCard({ strat, data }: { strat: string; data: Strategy }) {
