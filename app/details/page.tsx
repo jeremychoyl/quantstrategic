@@ -4,7 +4,6 @@ import dynamic from "next/dynamic"
 import { DashboardData, LiveTrade, LiveDayCurve } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
-import CommodityDemo from "@/components/CommodityDemo"
 
 const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
   ssr: false,
@@ -248,14 +247,6 @@ export default function Details() {
         {data?.projections?.ytd_equity && (
           <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
             <BookEquityChart eq={data.projections.ytd_equity} />
-          </div>
-        )}
-
-        {/* Gold / Crude demo sandbox — separate block, isolated from the live MNQ log
-            above (guarded: renders nothing if the key is absent) */}
-        {data?.commodity_demo && (
-          <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
-            <CommodityDemo demo={data.commodity_demo} />
           </div>
         )}
       </main>

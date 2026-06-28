@@ -24,13 +24,11 @@ const STRATS = [
   { key: "orb",   label: "ORB 30m",      note: "Edge confirmed post-2021. Pre-2021 period (PF ~0.79) is included in the 16y totals — the walkforward gate correctly sits it out in live trading." },
   { key: "ema",   label: "EMA Cross 5m", note: null },
   { key: "dc",    label: "DC Mean Rev",  note: null },
-  { key: "gold",  label: "Gold short",   note: "Demo sandbox (MGC). Daily Donchian-high short reversion." },
-  { key: "crude", label: "Crude short",  note: "Demo sandbox (MCL). Daily Donchian-high short reversion." },
 ] as const
 type StratKey = typeof STRATS[number]["key"]
-type StrategyKey = "orb" | "ema" | "dc" | "gold" | "crude"   // every tab except "all"
+type StrategyKey = "orb" | "ema" | "dc"   // every tab except "all"
 const PER_STRATEGY_NAME: Record<StrategyKey, string> = {
-  orb: "ORB", ema: "EMA", dc: "DC", gold: "Gold", crude: "Crude",
+  orb: "ORB", ema: "EMA", dc: "DC",
 }
 
 function Skel({ h }: { h: number }) {

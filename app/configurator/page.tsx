@@ -25,19 +25,15 @@ const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
 
 type DataView = "projected" | "live"
 type Period   = "1W" | "1M" | "3M" | "YTD" | "ALL" | "CUSTOM"
-type ComboKey = "orb" | "ema" | "dc" | "gold" | "crude"
+type ComboKey = "orb" | "ema" | "dc"
 type Contracts = Record<ComboKey, number>
 
 const COMBO_LABELS: Record<ComboKey, string> = {
   orb:   "ORB 30m",
   ema:   "EMA Cross 5m",
   dc:    "DC MeanRev",
-  gold:  "Gold short",
-  crude: "Crude short",
 }
-const COMBOS: ComboKey[] = ["orb", "ema", "dc", "gold", "crude"]
-// the 2 demo-sandbox legs (vs the 3 live MNQ) — for the "demo" pill on toggles
-const DEMO_KEYS: ComboKey[] = ["gold", "crude"]
+const COMBOS: ComboKey[] = ["orb", "ema", "dc"]
 
 function buildCombinedCurve(
   curve: BookEquityPoint[],
@@ -357,8 +353,8 @@ export default function Configurator() {
   const [period, setPeriod]       = useState<Period>("YTD")
   const [from, setFrom]           = useState("2026-01-01")
   const [to, setTo]               = useState(new Date().toISOString().slice(0, 10))
-  const [selected, setSelected]   = useState<Set<ComboKey>>(new Set(["orb", "ema", "dc", "gold", "crude"]))
-  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1, gold: 1, crude: 1 })
+  const [selected, setSelected]   = useState<Set<ComboKey>>(new Set(["orb", "ema", "dc"]))
+  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1 })
 
   const load = useCallback(async () => {
     const d = await fetchDashboard()
@@ -379,8 +375,8 @@ export default function Configurator() {
     setContracts(prev => ({ ...prev, [key]: n }))
 
   const reset = () => {
-    setSelected(new Set(["orb", "ema", "dc", "gold", "crude"]))
-    setContracts({ orb: 1, ema: 1, dc: 1, gold: 1, crude: 1 })
+    setSelected(new Set(["orb", "ema", "dc"]))
+    setContracts({ orb: 1, ema: 1, dc: 1 })
     setView("projected")
   }
 
@@ -445,18 +441,16 @@ export default function Configurator() {
                 <p className="text-xs font-semibold mb-2" style={{ color: "var(--muted)" }}>PORTFOLIO COMBINATION</p>
                 <div className="flex flex-wrap gap-2">
                   {COMBOS.map(key => {
-                    const on   = selected.has(key)
-                    const demo = DEMO_KEYS.includes(key)
+                    const on = selected.has(key)
                     return (
                       <button key={key} onClick={() => toggle(key)}
                               className="px-4 py-2 rounded-lg text-sm font-bold transition-all"
                               style={{
-                                background: on ? (demo ? "#2a2810" : "var(--accent2)") : "var(--surface2)",
-                                color:      on ? (demo ? "#fbbf24"  : "#fff")           : "var(--muted)",
-                                border: `1px solid ${on ? (demo ? "#854d0e" : "var(--accent2)") : "var(--border)"}`,
+                                background: on ? "var(--accent2)" : "var(--surface2)",
+                                color:      on ? "#fff" : "var(--muted)",
+                                border: `1px solid ${on ? "var(--accent2)" : "var(--border)"}`,
                               }}>
                         {COMBO_LABELS[key]}
-                        {demo && <span className="ml-1.5 text-xs opacity-70">◐ demo</span>}
                       </button>
                     )
                   })}

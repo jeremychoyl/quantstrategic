@@ -17,8 +17,6 @@ const LEGS = [
   { key: "orb",   label: "ORB (MNQ)",   color: "#4ea1ff" },
   { key: "ema",   label: "EMA (MNQ)",   color: "#00d4aa" },
   { key: "dc",    label: "DC (MNQ)",    color: "#b07cff" },
-  { key: "gold",  label: "Gold (MGC)",  color: "#fbbf24" },
-  { key: "crude", label: "Crude (MCL)", color: "#ff7849" },
 ] as const
 
 type LegKey = (typeof LEGS)[number]["key"]
@@ -41,7 +39,7 @@ export default function BookEquityChart({ eq, focus }: { eq: YtdEquity; focus?: 
         </span>
       </div>
       <p className="text-xs -mt-1" style={{ color: "var(--muted)" }}>
-        {focusLeg ? "1 contract" : "5 strategies · 1 contract each"} · {eq?.since} → {eq?.through}
+        {focusLeg ? "1 contract" : "3 strategies · 1 contract each"} · {eq?.since} → {eq?.through}
       </p>
 
       {series.length === 0 ? (

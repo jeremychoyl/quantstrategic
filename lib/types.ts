@@ -175,8 +175,6 @@ export interface BookEquityPoint {
   orb: number
   ema: number
   dc: number
-  gold: number
-  crude: number
   combined: number
 }
 
@@ -224,40 +222,6 @@ export interface Projections {
   book_ytd?: Strategy16y
 }
 
-export interface CommodityDemoStrategy {
-  name: string
-  today_usd: number
-  week_usd: number
-  all_time_usd: number
-  n_trades: number
-}
-
-export interface CommodityDemoPosition {
-  strategy: string
-  direction: string
-  size: string
-  entry_px: number
-  entry_date: string
-  signal_close: number
-}
-
-export interface CommodityDemoFill {
-  strategy: string
-  ts: string
-  action: string
-  price: number
-  pnl_usd: number
-}
-
-export interface CommodityDemo {
-  as_of: string
-  note: string
-  book: { realized_usd: number; n_trades: number }
-  per_strategy: Record<string, CommodityDemoStrategy>
-  open_positions: CommodityDemoPosition[]
-  recent_fills: CommodityDemoFill[]
-}
-
 export interface ResearchDiscipline {
   as_of: string
   headline: string
@@ -282,6 +246,5 @@ export interface DashboardData {
   performance_detail?: Record<string, StrategyPerfDetail>
   live_trades?: LiveTradesData
   projections?: Projections
-  commodity_demo?: CommodityDemo
   research_discipline?: ResearchDiscipline
 }

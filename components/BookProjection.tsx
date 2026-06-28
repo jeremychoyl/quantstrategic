@@ -110,7 +110,7 @@ export default function BookProjection(
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-base font-black tracking-tight">Projected Profit — 5-Strategy Book</h2>
+        <h2 className="text-base font-black tracking-tight">Projected Profit — 3-Strategy Book</h2>
         <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{projections.note}</p>
       </div>
 
@@ -139,7 +139,7 @@ export default function BookProjection(
       <div className="rounded-xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <h3 className="text-sm font-bold mb-0.5">Per-Strategy Breakdown</h3>
         <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
-          16-year backtest · 1 contract each · 3 live MNQ + 2 demo sandbox (Gold/Crude)
+          16-year backtest · 1 contract each · 3 live MNQ
         </p>
 
         {/* desktop table */}
