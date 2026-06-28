@@ -258,6 +258,14 @@ export interface CommodityDemo {
   recent_fills: CommodityDemoFill[]
 }
 
+export interface ResearchDiscipline {
+  as_of: string
+  headline: string
+  book: string[]
+  research_spend_usd: number
+  tested_rejected: { idea: string; reason: string }[]
+}
+
 export interface DashboardData {
   generated_at: string
   bridge_mode: string
@@ -275,4 +283,5 @@ export interface DashboardData {
   live_trades?: LiveTradesData
   projections?: Projections
   commodity_demo?: CommodityDemo
+  research_discipline?: ResearchDiscipline
 }

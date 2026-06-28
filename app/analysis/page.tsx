@@ -413,6 +413,35 @@ export default function Analysis() {
             </div>
           </div>
         )}
+
+        {/* ── research discipline: what we tested & rejected ── */}
+        {data?.research_discipline && (
+          <div className="mt-8">
+            <h2 className="text-sm font-bold mb-1">Research Discipline · What We Tested &amp; Rejected</h2>
+            <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
+              {data.research_discipline.headline}
+              {" · "}
+              <span style={{ color: "var(--fg)" }}>
+                ${data.research_discipline.research_spend_usd.toLocaleString()} research spend
+              </span>
+              {" · the cost of "}<em>knowing</em>{", not guessing"}
+            </p>
+            <div className="rounded border" style={{ borderColor: "var(--border)" }}>
+              {data.research_discipline.tested_rejected.map((r, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col sm:flex-row gap-1 sm:gap-3 px-3 py-2 text-xs border-b last:border-b-0"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  <span className="font-semibold sm:w-64 shrink-0">
+                    <span style={{ color: "var(--down, #e5484d)" }}>✗</span> {r.idea}
+                  </span>
+                  <span style={{ color: "var(--muted)" }}>{r.reason}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
