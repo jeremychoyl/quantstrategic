@@ -15,16 +15,15 @@ const AnalysisChart = dynamic(() => import("@/components/AnalysisChart"), {
 })
 
 type Period = "1W" | "1M" | "3M" | "YTD" | "ALL" | "CUSTOM"
-type ComboKey = "ema" | "orb" | "overnight" | "dc"
+type ComboKey = "ema" | "orb" | "dc"
 type Contracts = Record<ComboKey, number>
 
 const COMBO_LABELS: Record<ComboKey, string> = {
   orb:       "ORB 30m",
   ema:       "EMA Cross 5m",
   dc:        "DC MeanRev",
-  overnight: "Overnight",
 }
-const COMBOS: ComboKey[] = ["orb", "ema", "dc", "overnight"]
+const COMBOS: ComboKey[] = ["orb", "ema", "dc"]
 
 // ── curve helpers ────────────────────────────────────────────────────────────
 
@@ -38,7 +37,6 @@ function buildCombinedCurve(
     if (selected.has("ema"))       combined += (pt.ema       ?? 0) * contracts.ema
     if (selected.has("orb"))       combined += (pt.orb       ?? 0) * contracts.orb
     if (selected.has("dc"))        combined += (pt.dc        ?? 0) * contracts.dc
-    if (selected.has("overnight")) combined += (pt.overnight ?? 0) * contracts.overnight
     return { ...pt, combined }
   })
 }
@@ -56,7 +54,6 @@ function computeScaledStats(
     if (selected.has("ema"))       d += ((pt.ema       ?? 0) - (prev?.ema       ?? 0)) * contracts.ema
     if (selected.has("orb"))       d += ((pt.orb       ?? 0) - (prev?.orb       ?? 0)) * contracts.orb
     if (selected.has("dc"))        d += ((pt.dc        ?? 0) - (prev?.dc        ?? 0)) * contracts.dc
-    if (selected.has("overnight")) d += ((pt.overnight ?? 0) - (prev?.overnight ?? 0)) * contracts.overnight
     return d
   })
 
@@ -233,7 +230,7 @@ export default function Analysis() {
   const [from, setFrom]           = useState("2026-01-01")
   const [to, setTo]               = useState(new Date().toISOString().slice(0, 10))
   const [selected, setSelected]   = useState<Set<ComboKey>>(new Set(["orb", "ema", "dc"]))
-  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1, overnight: 1 })
+  const [contracts, setContracts] = useState<Contracts>({ orb: 1, ema: 1, dc: 1 })
 
   const load = useCallback(async () => {
     const d = await fetchDashboard()
@@ -255,7 +252,7 @@ export default function Analysis() {
 
   const reset = () => {
     setSelected(new Set(["orb", "ema", "dc"]))
-    setContracts({ orb: 1, ema: 1, dc: 1, overnight: 1 })
+    setContracts({ orb: 1, ema: 1, dc: 1 })
   }
 
   const cap = parseFloat(capital.replace(/,/g, "")) || 25000
@@ -292,7 +289,7 @@ export default function Analysis() {
                 const on      = selected.has(key)
                 const shelved = data?.strategies
                   ? Object.values(data.strategies).find(s => s.combo_key === key)?.status === "shelved"
-                  : key === "overnight"
+                  : false
                 return (
                   <button key={key} onClick={() => toggle(key)}
                           className="px-4 py-2 rounded-lg text-sm font-bold transition-all"
