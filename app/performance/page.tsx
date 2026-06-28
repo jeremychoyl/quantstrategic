@@ -120,6 +120,12 @@ export default function Performance() {
             <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
               Full 16-year backtest · 2010–2026 · 1 MNQ · 1.24 pts cost RT
             </p>
+            <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--muted)" }}>
+              Raw 16-year backtest — ungated (every trade, all regimes).
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+              Sharpe uses a business-day basis (×√252) in both views; backtest-vs-deployed differences are the gate, not the calculation.
+            </p>
           </div>
           <div className="flex gap-1.5">
             {STRATS.map(s => (
@@ -197,6 +203,13 @@ export default function Performance() {
                        last />
               </div>
             </div>
+
+            {/* ORB ungated max-DD footnote */}
+            {active === "orb" && (
+              <p className="text-xs" style={{ color: "var(--muted)" }}>
+                ORB&apos;s $12,682 max-DD is the ungated full-16y figure — ORB&apos;s edge is post-2021 only, so the live trailing-PF gate sits it out before then (deployed max-DD $3,077, see Projections).
+              </p>
+            )}
 
             {/* ── Variance / drift indicator ────────────────────── */}
             <VarianceCard

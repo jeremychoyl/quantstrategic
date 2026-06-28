@@ -169,6 +169,41 @@ export default function Overview() {
             )}
           </>
         )}
+
+        {/* ── Outside Investor's Verdict (daily, AI, grounded in this command center) ── */}
+        {data?.investor_verdict?.verdict && (
+          <div className="mt-8">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h2 className="text-sm font-bold">🧭 Outside Investor&apos;s Verdict</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                    style={{
+                      background: data.investor_verdict.would_invest ? "#1a2a24" : "#2a1416",
+                      color: data.investor_verdict.would_invest ? UP : DOWN,
+                      border: `1px solid ${data.investor_verdict.would_invest ? "#1e3a30" : "#3a1e22"}`,
+                    }}>
+                {data.investor_verdict.stance}
+              </span>
+            </div>
+            <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
+              Claude as a prospective LP, reading only this command center · refreshed daily &amp; sent to Telegram
+            </p>
+            <div className="rounded-xl p-4 mb-3" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed">{data.investor_verdict.verdict}</p>
+            </div>
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+              {data.investor_verdict.scorecard.map((r, i) => (
+                <div key={i}
+                     className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-xs border-b last:border-b-0"
+                     style={{ borderColor: "var(--border)" }}>
+                  <span style={{ color: r.pass ? UP : DOWN }}>{r.pass ? "✓" : "✗"}</span>
+                  <span className="font-semibold sm:w-44 shrink-0">{r.criterion}</span>
+                  <span className="tabular-nums">{r.now}</span>
+                  <span className="ml-auto" style={{ color: "var(--muted)" }}>need {r.target}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

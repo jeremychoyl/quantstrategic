@@ -230,6 +230,14 @@ export interface ResearchDiscipline {
   tested_rejected: { idea: string; reason: string }[]
 }
 
+export interface InvestorVerdict {
+  as_of: string
+  would_invest: boolean
+  stance: string
+  verdict: string
+  scorecard: { criterion: string; target: string; now: string; pass: boolean }[]
+}
+
 export interface DashboardData {
   generated_at: string
   bridge_mode: string
@@ -247,4 +255,5 @@ export interface DashboardData {
   live_trades?: LiveTradesData
   projections?: Projections
   research_discipline?: ResearchDiscipline
+  investor_verdict?: InvestorVerdict
 }

@@ -112,6 +112,12 @@ export default function BookProjection(
       <div>
         <h2 className="text-base font-black tracking-tight">Projected Profit — 3-Strategy Book</h2>
         <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>{projections.note}</p>
+        <p className="text-xs mt-0.5 font-semibold" style={{ color: "var(--muted)" }}>
+          Deployed config — gated (live trailing-PF gate sits legs out in unfavorable regimes).
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
+          Sharpe uses a business-day basis (×√252) in both views; backtest-vs-deployed differences are the gate, not the calculation.
+        </p>
       </div>
 
       {/* Hero — combined book */}
@@ -134,6 +140,11 @@ export default function BookProjection(
                     color={b.return_on_capital_pct >= 0 ? UP : DOWN} last />
         </div>
       </div>
+
+      {/* Book Calmar footnote */}
+      <p className="text-xs" style={{ color: "var(--muted)" }}>
+        Calmar 0.92 = gated book annual return ÷ gated max-DD ($3,114). The gate turns legs off in bad regimes, so the book&apos;s drawdown is smaller than an individual ungated leg&apos;s — that&apos;s the gating working, not an error.
+      </p>
 
       {/* Per-strategy breakdown */}
       <div className="rounded-xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
