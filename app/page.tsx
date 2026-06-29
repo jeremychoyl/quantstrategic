@@ -108,18 +108,36 @@ export default function Overview() {
             {/* Positions */}
             <Positions positions={data.active_positions} mode={data.bridge_mode} />
 
-            {/* Live P&L summary chips */}
+            {/* Live P&L summary — Total P&L hero + Total pts beside, context chips below */}
             {sum && (
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                <LiveStatChip label="Live trades"    value={`${sum.total_trades}`} />
-                <LiveStatChip label="Win rate"       value={`${sum.win_rate}%`}
-                              color={sum.win_rate >= 50 ? UP : DOWN} />
-                <LiveStatChip label="Total P&L"      value={fmt$(sum.total_pnl_usd, true)}
-                              color={sum.total_pnl_usd >= 0 ? UP : DOWN} />
-                <LiveStatChip label="Total pts"      value={`${sum.total_pnl_pts >= 0 ? "+" : ""}${sum.total_pnl_pts.toFixed(1)} pts`}
-                              color={sum.total_pnl_pts >= 0 ? UP : DOWN} />
-                <LiveStatChip label="Avg entry slip" value={`${sum.avg_slippage_pts >= 0 ? "+" : ""}${sum.avg_slippage_pts.toFixed(1)} pts`}
-                              color={sum.avg_slippage_pts <= 0 ? UP : DOWN} />
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="col-span-2 rounded-xl px-5 py-4 flex flex-col justify-center"
+                       style={{ background: "var(--surface2)",
+                                border: `1px solid ${sum.total_pnl_usd >= 0 ? UP : DOWN}`,
+                                boxShadow: sum.total_pnl_usd >= 0
+                                  ? "0 0 24px rgba(0,212,170,0.18)" : "0 0 24px rgba(255,77,109,0.16)" }}>
+                    <span className="text-xs font-semibold uppercase tracking-widest"
+                          style={{ color: "var(--muted)" }}>Total P&amp;L (live)</span>
+                    <span className="text-4xl sm:text-5xl font-black mt-1 leading-none tabular-nums"
+                          style={{ color: sum.total_pnl_usd >= 0 ? UP : DOWN }}>{fmt$(sum.total_pnl_usd, true)}</span>
+                  </div>
+                  <div className="rounded-xl px-4 py-2 flex flex-col justify-center"
+                       style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+                    <span className="text-xs" style={{ color: "var(--muted)" }}>Total pts</span>
+                    <span className="text-lg sm:text-xl font-black leading-tight tabular-nums"
+                          style={{ color: sum.total_pnl_pts >= 0 ? UP : DOWN }}>
+                      {`${sum.total_pnl_pts >= 0 ? "+" : ""}${sum.total_pnl_pts.toFixed(1)}`}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <LiveStatChip label="Live trades"    value={`${sum.total_trades}`} />
+                  <LiveStatChip label="Win rate"       value={`${sum.win_rate}%`}
+                                color={sum.win_rate >= 50 ? UP : DOWN} />
+                  <LiveStatChip label="Avg entry slip" value={`${sum.avg_slippage_pts >= 0 ? "+" : ""}${sum.avg_slippage_pts.toFixed(1)} pts`}
+                                color={sum.avg_slippage_pts <= 0 ? UP : DOWN} />
+                </div>
               </div>
             )}
 
