@@ -233,8 +233,41 @@ const SMALL_SAMPLE_DAYS = 20   // below this, annualised ratio ratings are flagg
 
 function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number }) {
   const dd = stats.max_dd_usd
+  const totalUsd = stats.total_usd ?? 0
+  const totalPts = stats.total_pts ?? 0
+  const posUsd = totalUsd >= 0
+  const posPts = totalPts >= 0
+  const totalUsdStr = `${posUsd ? "+" : "−"}$${Math.abs(totalUsd).toLocaleString()}`
+  const totalPtsStr = `${posPts ? "+" : "−"}${Math.abs(totalPts).toFixed(1)}`
   return (
     <div className="space-y-2 mt-4">
+      {/* HERO — Total $ dominant, secondary stats stacked at right */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="col-span-2 rounded-xl px-5 py-4 flex flex-col justify-center"
+             style={{ background: "var(--surface2)",
+                      border: `1px solid ${posUsd ? "var(--accent)" : "var(--down)"}`,
+                      boxShadow: posUsd ? "0 0 24px rgba(34,197,94,0.18)" : "0 0 24px rgba(239,68,68,0.15)" }}>
+          <span className="text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "var(--muted)" }}>Total P&amp;L</span>
+          <span className="text-4xl sm:text-5xl font-black mt-1 leading-none"
+                style={{ color: posUsd ? "var(--up)" : "var(--down)" }}>{totalUsdStr}</span>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="rounded-xl px-4 py-2 flex flex-1 flex-col justify-center"
+               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+            <span className="text-xs" style={{ color: "var(--muted)" }}>Total pts</span>
+            <span className="text-lg font-black leading-tight"
+                  style={{ color: posPts ? "var(--up)" : "var(--down)" }}>{totalPtsStr}</span>
+          </div>
+          <div className="rounded-xl px-4 py-2 flex flex-1 flex-col justify-center"
+               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+            <span className="text-xs" style={{ color: "var(--muted)" }}>Trade days</span>
+            <span className="text-lg font-black leading-tight"
+                  style={{ color: "var(--text)" }}>{stats.trade_days}</span>
+          </div>
+        </div>
+      </div>
+
       {/* rated ratios — react to selection / scaling */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <StatPill label="Profit Factor" value={stats.pf?.toFixed(2) ?? "—"}
@@ -258,17 +291,6 @@ function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number })
         <StatPill label="Win %" value={`${stats.win_pct?.toFixed(1)}%`} />
         <StatPill label="Max DD" value={`-$${Math.abs(dd).toLocaleString()}`} color="var(--down)"
                   rating={rateMetric("maxdd", Math.abs(dd), capital)} />
-      </div>
-
-      {/* totals */}
-      <div className="grid grid-cols-3 gap-2">
-        <StatPill label="Total $"
-                  value={`${(stats.total_usd ?? 0) >= 0 ? "+" : ""}$${Math.abs(stats.total_usd ?? 0).toLocaleString()}`}
-                  color={(stats.total_usd ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
-        <StatPill label="Total pts"
-                  value={`${(stats.total_pts ?? 0) >= 0 ? "+" : ""}${stats.total_pts?.toFixed(1)}`}
-                  color={(stats.total_pts ?? 0) >= 0 ? "var(--up)" : "var(--down)"} />
-        <StatPill label="Trade days" value={`${stats.trade_days}`} />
       </div>
 
       {/* risk profile — inverse rated (lower = better) */}
