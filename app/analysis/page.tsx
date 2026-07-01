@@ -112,6 +112,11 @@ export default function Analysis() {
                     </tbody>
                   </table>
                 </div>
+                <p className="text-[11px] mt-3 leading-snug" style={{ color: "var(--muted)" }}>
+                  DC&apos;s trade count reflects the deployment-gated subset — its trailing-PF gate needs ~15y of
+                  DC&apos;s ~17-trades/yr to warm up, so only recent trades are gate-active (same basis as Projection).
+                  DC&apos;s full-history risk (277 days) is on the Risk tab.
+                </p>
               </Card>
             )}
 
