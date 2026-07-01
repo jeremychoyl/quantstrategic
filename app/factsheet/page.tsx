@@ -47,6 +47,9 @@ function KV({ k, v }: { k: string; v: string }) {
 
 export default function Factsheet() {
   const [data, setData] = useState<DashboardData | null>(null)
+  // "full" = honest internal view (incl. the adversarial investor verdict);
+  // "marketing" = clean external one-pager (omits the opinion, keeps all facts + disclaimer).
+  const [variant, setVariant] = useState<"full" | "marketing">("full")
 
   const load = useCallback(async () => {
     const d = await fetchDashboard()
@@ -81,12 +84,27 @@ export default function Factsheet() {
               QuantStrategic — systematic MNQ futures · one-page investor summary
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide"
-                  style={{ background: "#1a2a24", color: UP, border: "1px solid #1e3a30" }}>
-              ● Live since {data?.live_since ?? "—"}
-            </span>
-            {asOf && <span className="text-xs" style={{ color: "var(--muted)" }}>as of {asOf}</span>}
+          <div className="flex flex-col items-start sm:items-end gap-2">
+            <div className="flex gap-1.5">
+              {([["full", "Full"], ["marketing", "Marketing"]] as const).map(([v, label]) => (
+                <button key={v} onClick={() => setVariant(v)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                        style={{
+                          background: variant === v ? "var(--accent2)" : "var(--surface)",
+                          color:      variant === v ? "#fff" : "var(--text2)",
+                          border:     "1px solid var(--border)",
+                        }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide"
+                    style={{ background: "#1a2a24", color: UP, border: "1px solid #1e3a30" }}>
+                ● Live since {data?.live_since ?? "—"}
+              </span>
+              {asOf && <span className="text-xs" style={{ color: "var(--muted)" }}>as of {asOf}</span>}
+            </div>
           </div>
         </div>
 
@@ -199,8 +217,8 @@ export default function Factsheet() {
               </Card>
             </div>
 
-            {/* Outside investor's view */}
-            {iv && (
+            {/* Outside investor's view — honest (full) variant only */}
+            {variant === "full" && iv && (
               <Card title="Outside investor's view" sub={`Adversarial allocator read · ${iv.as_of?.slice(0, 10) ?? ""}`}>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-bold px-2 py-1 rounded uppercase tracking-wide"
