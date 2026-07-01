@@ -4,7 +4,8 @@ import dynamic from "next/dynamic"
 import { DashboardData, Projections, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
-import BookProjection, { CorrelationMatrix } from "@/components/BookProjection"
+import BookProjection from "@/components/BookProjection"
+import CorrelationMatrix from "@/components/CorrelationMatrix"
 import RatingLegend from "@/components/RatingLegend"
 
 const PerfEquityChart = dynamic(
@@ -327,7 +328,7 @@ export default function Expected() {
         {/* ALL — combined book overview + 5-strategy YTD equity */}
         {data?.projections && active === "all" && (
           <>
-            <BookProjection projections={data.projections} hideCorrelation />
+            <BookProjection projections={data.projections} />
             {data.projections.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
             {data.projections.book_16y && <BookStatBlock b={data.projections.book_16y} />}
           </>
@@ -339,8 +340,8 @@ export default function Expected() {
         )}
 
 
-        {/* Strategy correlation — always at the very bottom */}
-        {data?.projections && <CorrelationMatrix projections={data.projections} />}
+        {/* Strategy correlation — honest co-active matrix, always at the very bottom */}
+        {data?.projections?.risk && <CorrelationMatrix risk={data.projections.risk} />}
 
         {/* ★ rating reference scale */}
         {data && <RatingLegend />}
