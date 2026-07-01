@@ -13,9 +13,25 @@
       "title": "Regime monitor upgrades",
       "items": ["VWAP layer: continuous ATR-distance scoring", "Key levels in /status (POC/VAH/VAL/VWAPs/4H swings)", "/levels, /delta, /session commands", "30-day log rotation in webhook receiver"] },
 
+    { "week": "W9", "source": "gekko-weekend9-done.md", "category": "infra",
+      "title": "/session command",
+      "items": ["Current-session summary card: range, volume, net Δ, CVD drift, VWAP distance", "Bias line: net buying/selling with ▲/▼ bar counts", "Completes the read set: /levels (where) + /delta (recent) + /session (narrative)"] },
+
+    { "week": "W10", "source": "gekko-weekend10-done.md", "category": "infra",
+      "title": "Session comparison + log rotation",
+      "items": ["/session appends previous-session comparison (range, net Δ, bias)", "Webhook log rotation: 30-day retention (~4.3MB cap)", "CVD-cumulative caveat documented — net Δ is the only valid cross-session metric"] },
+
     { "week": "W11–W16", "source": "gekko-weekend16-done.md", "category": "infra",
       "title": "History & sparklines",
       "items": ["regime_history.jsonl — all classifier runs deduped by bar_time", "Score sparkline ▁▂▃▄▅▆▇█ in /status", "5-min regime classifier cron", "Score trend ±drift over 30m"] },
+
+    { "week": "W18", "source": "gekko-weekend18-done.md", "category": "infra",
+      "title": "Watchdog fix + /recap",
+      "items": ["Watchdog false-positive fixed (open-time-aware STALE_MINUTES 10→13)", "/recap: 24h regime history grouped by session with ⚡ transition markers", "Brief error handling: Telegram alerts on data / prompt-build failures"] },
+
+    { "week": "W19", "source": "gekko-weekend19-done.md", "category": "infra",
+      "title": "History dedup + brief prompt hardening",
+      "items": ["Regime history dedup by bar_time (brief + 5-min crons collided at same minute)", "Brief prompt: use only real levels, banned invented pivot/support/resistance terms", "First 4-day data snapshot assessed (882 bars, IMBALANCED_UP 64%)"] },
 
     { "week": "W20–W29", "source": "gekko-weekend29-done.md", "category": "infra",
       "title": "Alert system build-out",
