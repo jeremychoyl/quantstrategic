@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
-import { DashboardData, BookEquityPoint, PortfolioStats, LiveDayCurve } from "@/lib/types"
+import { DashboardData, BookEquityPoint, PortfolioStats, LiveDayCurve, Sizing } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import StrategyCard from "@/components/StrategyModal"
@@ -368,6 +368,122 @@ function LiveSummaryStats({ curve }: { curve: LiveDayCurve[] }) {
   )
 }
 
+// ── Book sizing & capital (16y modeled) — pick any config, see maxDD + min capital ──
+function usd0(v: number): string { return `$${Math.round(v).toLocaleString()}` }
+
+function Stepper0({ label, value, max, onChange }: {
+  label: string; value: number; max: number; onChange: (n: number) => void
+}) {
+  const btn = "w-6 h-6 rounded flex items-center justify-center text-sm font-black"
+  const bs  = { background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }
+  return (
+    <div className="flex items-center gap-2 rounded-lg px-3 py-2"
+         style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+      <span className="text-xs font-semibold min-w-[76px]" style={{ color: "var(--muted)" }}>{label}</span>
+      <button className={btn} style={bs} onClick={() => onChange(Math.max(0, value - 1))}>−</button>
+      <span className="text-sm font-black w-4 text-center"
+            style={{ color: value === 0 ? "var(--muted)" : "var(--text)" }}>{value}</span>
+      <button className={btn} style={bs} onClick={() => onChange(Math.min(max, value + 1))}>+</button>
+    </div>
+  )
+}
+
+function SizingCapital({ sizing }: { sizing?: Sizing }) {
+  const [cfg, setCfg] = useState<{ orb: number; ema: number; dc: number }>({ orb: 1, ema: 1, dc: 1 })
+  const maxC  = sizing?.max_contracts ?? 8
+  const entry = useMemo(
+    () => sizing?.grid.find(g => g.o === cfg.orb && g.e === cfg.ema && g.d === cfg.dc) ?? null,
+    [sizing, cfg])
+  if (!sizing) return null
+
+  const total  = cfg.orb + cfg.ema + cfg.dc
+  const margin = sizing.margins.orb * cfg.orb + sizing.margins.ema * cfg.ema + sizing.margins.dc * cfg.dc
+  const maxdd  = entry?.dd ?? 0
+  const minCap = margin + maxdd
+
+  const setOptimal = () => {
+    const t = Math.max(1, total)
+    const rp = sizing.risk_parity
+    const raw: Record<"orb"|"ema"|"dc", number> = { orb: rp.orb * t, ema: rp.ema * t, dc: rp.dc * t }
+    const v: Record<"orb"|"ema"|"dc", number> = {
+      orb: Math.min(maxC, Math.max(0, Math.round(raw.orb))),
+      ema: Math.min(maxC, Math.max(0, Math.round(raw.ema))),
+      dc:  Math.min(maxC, Math.max(0, Math.round(raw.dc))),
+    }
+    const keys = ["orb", "ema", "dc"] as const
+    let sum = v.orb + v.ema + v.dc, guard = 0
+    while (sum !== t && guard++ < 60) {
+      if (sum < t) {
+        const k = keys.filter(x => v[x] < maxC).sort((a, b) => (raw[b] - v[b]) - (raw[a] - v[a]))[0]
+        if (!k) break; v[k]++; sum++
+      } else {
+        const k = keys.filter(x => v[x] > 0).sort((a, b) => (v[a] - raw[a]) - (v[b] - raw[b]))[0]
+        if (!k) break; v[k]--; sum--
+      }
+    }
+    setCfg(v)
+  }
+
+  const tile = (label: string, value: string, color?: string, sub?: string) => (
+    <div key={label} className="rounded-lg p-3"
+         style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+      <p className="text-xs" style={{ color: "var(--muted)" }}>{label}</p>
+      <p className="text-base font-bold tabular-nums mt-0.5" style={{ color: color ?? "var(--text)" }}>{value}</p>
+      {sub && <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>{sub}</p>}
+    </div>
+  )
+
+  return (
+    <div className="rounded-xl p-5 space-y-4 mt-4"
+         style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold" style={{ color: "var(--muted)" }}>
+          BOOK SIZING &amp; CAPITAL <span className="opacity-60">· 16y modeled</span>
+        </p>
+        <div className="flex gap-2">
+          <button onClick={setOptimal} className="px-3 py-1.5 rounded-lg text-xs font-bold"
+                  style={{ background: "var(--accent2)", color: "#fff", border: "1px solid var(--accent2)" }}>
+            Optimal
+          </button>
+          <button onClick={() => setCfg({ orb: 1, ema: 1, dc: 1 })}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                  style={{ background: "var(--surface2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Stepper0 label="ORB 30m"    value={cfg.orb} max={maxC} onChange={n => setCfg(c => ({ ...c, orb: n }))} />
+        <Stepper0 label="EMA Cross"  value={cfg.ema} max={maxC} onChange={n => setCfg(c => ({ ...c, ema: n }))} />
+        <Stepper0 label="DC MeanRev" value={cfg.dc}  max={maxC} onChange={n => setCfg(c => ({ ...c, dc: n }))} />
+        <div className="flex items-center px-2 text-xs" style={{ color: "var(--muted)" }}>
+          = <span className="font-black mx-1" style={{ color: "var(--text)" }}>{cfg.orb}-{cfg.ema}-{cfg.dc}</span>
+          ({total} contract{total === 1 ? "" : "s"})
+        </div>
+      </div>
+
+      {total === 0 ? (
+        <p className="text-sm" style={{ color: "var(--muted)" }}>Add at least one contract to size the book.</p>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          {tile("Min capital required", usd0(minCap), "var(--text)", `margin ${usd0(margin)} + maxDD`)}
+          {tile("Max drawdown (16y)", `−${usd0(maxdd)}`, "var(--down)")}
+          {tile("Sharpe", entry ? entry.sh.toFixed(2) : "—")}
+          {tile("Calmar", entry?.cal != null ? entry.cal.toFixed(2) : "—")}
+          {tile("Annual (16y avg)", entry ? usd0(entry.ann) : "—", "var(--up)")}
+        </div>
+      )}
+
+      <p className="text-[10px] leading-snug" style={{ color: "var(--muted)" }}>
+        16y modeled, ungated worst-case. Min capital = broker margin (ORB/EMA intraday, DC overnight) + the full
+        modeled max drawdown buffer. &ldquo;Optimal&rdquo; = risk-parity (inverse-vol) at the current total.
+        Margins are estimates — verify against your broker.
+      </p>
+    </div>
+  )
+}
+
 export default function Configurator() {
   const [data, setData]           = useState<DashboardData | null>(null)
   const [view, setView]           = useState<DataView>("projected")
@@ -549,6 +665,9 @@ export default function Configurator() {
               </div>
 
               {stats && <ComboStats stats={stats} capital={cap} />}
+
+              <SizingCapital sizing={data?.projections?.sizing} />
+
 
               {rebased.length > 0 ? (
                 <div className="mt-2">

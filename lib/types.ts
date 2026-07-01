@@ -248,6 +248,21 @@ export interface RiskBlock {
   coactive_n: Record<string, Record<string, number>>
 }
 
+export interface SizingGridEntry {
+  o: number; e: number; d: number       // orb / ema / dc contracts
+  dd: number                            // 16y modeled max drawdown ($, ungated worst-case)
+  sh: number                            // Sharpe
+  cal: number | null                    // Calmar
+  ann: number                           // annual $
+}
+export interface Sizing {
+  margins: { orb: number; ema: number; dc: number }   // $/contract (ORB/EMA intraday, DC overnight)
+  risk_parity: { orb: number; ema: number; dc: number } // inverse-vol contract shares (sum≈1)
+  max_contracts: number
+  basis: string
+  grid: SizingGridEntry[]
+}
+
 export interface Projections {
   as_of: string
   note: string
@@ -256,6 +271,7 @@ export interface Projections {
   book: ProjectionBook
   correlation: Record<string, Record<string, number>>
   risk?: RiskBlock
+  sizing?: Sizing
   ytd_equity?: YtdEquity
   strategy_16y?: Record<string, Strategy16y>
   strategy_ytd?: Record<string, Strategy16y>
