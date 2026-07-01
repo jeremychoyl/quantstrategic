@@ -158,7 +158,7 @@ export default function Factsheet() {
                 <KV k="Style" v="Intraday momentum + daily mean-reversion" />
                 <KV k="Strategies" v="ORB 30m · EMA cross 5m · DC daily" />
                 <KV k="Inception (live)" v={data.live_since ?? "—"} />
-                <KV k="Execution" v="Tradovate · 1-min bridge · −500 pts/day kill switch" />
+                <KV k="Execution" v="Tradovate · 1-min bridge · −500/−750 two-tier kill switch" />
                 <KV k="Est. capital" v={book ? `${fmt$(book.capital_estimate_usd)} (margin + DD buffer)` : "—"} />
               </Card>
             </div>
@@ -231,7 +231,7 @@ export default function Factsheet() {
                 </div>
                 <p className="text-[11px] mt-3 leading-snug" style={{ color: "var(--muted)" }}>
                   Concentration note: ORB &amp; EMA are correlated long-momentum legs (+0.43); DC is the genuine
-                  diversifier. A −500 pts/day book-wide kill switch blocks new entries (doesn&apos;t flatten).
+                  diversifier. Two-tier daily kill switch: blocks new entries at −500 pts, flattens all at −750 pts.
                 </p>
               </Card>
               <Card title="Research discipline" sub="Why the book is what it is">
