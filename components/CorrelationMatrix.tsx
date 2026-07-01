@@ -84,11 +84,12 @@ export default function CorrelationMatrix({ risk }: { risk: RiskBlock }) {
              style={{ background: "#2a1a10", border: "1px solid #854d0e", color: "var(--text2)" }}>
           <span style={{ color: WARN }}>⚠ Known concentration.</span>{" "}
           {breached.map(p => `${p.a}–${p.b} = ${(p.v as number).toFixed(2)}`).join(", ")}{" "}
-          sits above the {gate.toFixed(2)} gate. ORB and EMA are both long-NQ-momentum legs, so they
-          rise and fall together — the book&apos;s two high-frequency legs are <em>not</em> independent.
-          This is an accepted standing risk: both passed the deployment gates on their own, portfolio
-          Sharpe/Calmar already bake in the realized correlation, and <strong>DC is the genuine
-          diversifier</strong> (low correlation to both).
+          sits above the {gate.toFixed(2)} gate. Since EMA went bilateral (2026-07-01), its <em>short</em> side
+          overlaps ORB&apos;s short trades — both harvest the same down-trend breakdowns — so ORB and EMA co-move
+          on shared days (the long sides are ~uncorrelated, +0.05). The book&apos;s two high-frequency legs are
+          <em>not</em> fully independent. This is an accepted standing risk: both passed the deployment gates on
+          their own, portfolio Sharpe/Calmar already bake in the realized correlation, and <strong>DC is the
+          genuine diversifier</strong> (low correlation to both).
         </div>
       ) : (
         <div className="mt-3 rounded-lg p-3 text-xs" style={{ background: "#1a2a24", border: "1px solid #1e3a30", color: "var(--text2)" }}>

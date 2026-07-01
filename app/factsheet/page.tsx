@@ -230,8 +230,10 @@ export default function Factsheet() {
                   <Stat label="Days underwater" value={b16 ? `${b16.days_underwater}d` : "—"} sub="longest" />
                 </div>
                 <p className="text-[11px] mt-3 leading-snug" style={{ color: "var(--muted)" }}>
-                  Concentration note: ORB &amp; EMA are correlated long-momentum legs (+0.43); DC is the genuine
-                  diversifier. Two-tier daily kill switch: blocks new entries at −500 pts, flattens all at −750 pts.
+                  Concentration note: ORB &amp; EMA (bilateral) run +0.44 co-active — driven by EMA&apos;s short side,
+                  which harvests the same down-trend breakdowns as ORB&apos;s shorts (the long sides are ~uncorrelated,
+                  +0.05). DC is the genuine diversifier. Two-tier daily kill switch: blocks new entries at −500 pts,
+                  flattens all at −750 pts.
                 </p>
               </Card>
               <Card title="Research discipline" sub="Why the book is what it is">
