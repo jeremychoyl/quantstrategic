@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "gen:history": "node scripts/gen-history.mjs"
+    "gen:history": "node scripts/gen-history.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",

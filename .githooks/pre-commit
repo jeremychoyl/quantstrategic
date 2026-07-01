@@ -1,0 +1,12 @@
+#!/bin/sh
+# Keep lib/history.ts in sync with its memory-derived sources.
+# Only runs when a history source is staged; skips cleanly if the memory dir
+# isn't present (gen-history --check handles that).
+if git diff --cached --name-only | grep -qE '^(lib/history\.ts|scripts/milestones\.json|scripts/gen-history\.mjs)$'; then
+  npm run --silent gen:history -- --check || {
+    echo ""
+    echo "✗ pre-commit: lib/history.ts is out of date."
+    echo "  Run: npm run gen:history && git add lib/history.ts"
+    exit 1
+  }
+fi

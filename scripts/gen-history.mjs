@@ -145,9 +145,21 @@ ${body}
 `
 }
 
+const isCheck = process.argv.includes("--check")
+
+// The memory dir only exists on the author's machine. In --check mode (pre-commit /
+// CI on another machine) skip gracefully rather than blocking the commit.
+if (!existsSync(MEMORY_DIR)) {
+  if (isCheck) {
+    console.warn(`⚠ memory dir not found (${MEMORY_DIR}); skipping history check`)
+    process.exit(0)
+  }
+  die(`memory dir not found: ${MEMORY_DIR} (set GEKKO_MEMORY_DIR)`)
+}
+
 const out = build()
 
-if (process.argv.includes("--check")) {
+if (isCheck) {
   const current = existsSync(OUT) ? readFileSync(OUT, "utf8") : ""
   if (current !== out) {
     console.error("✗ lib/history.ts is out of date. Run: npm run gen:history")
