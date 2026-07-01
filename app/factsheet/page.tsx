@@ -116,9 +116,15 @@ export default function Factsheet() {
             {variant === "marketing" && book && (
               <div className="rounded-xl p-5"
                    style={{ background: "linear-gradient(135deg, #10241d 0%, var(--surface) 60%)", border: "1px solid #1e3a30" }}>
-                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: UP }}>
-                  Highlights · 16-year backtest · 1 contract each
-                </p>
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: UP }}>
+                    Highlights · 16-year backtest · 1 contract each
+                  </p>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide"
+                        style={{ background: "#2a1a10", color: WARN, border: "1px solid #854d0e" }}>
+                    Backtest — hypothetical
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                   {[
                     { l: "16-year net", v: fmt$(book.total_usd, true) },
