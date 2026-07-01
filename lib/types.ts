@@ -263,12 +263,29 @@ export interface Projections {
   book_ytd?: Strategy16y
 }
 
+export interface RejectedIdea {
+  idea: string
+  reason: string
+  pattern?: string
+}
+
+export interface RejectedGroup {
+  category: string
+  items: RejectedIdea[]
+}
+
 export interface ResearchDiscipline {
   as_of: string
   headline: string
   book: string[]
   research_spend_usd: number
-  tested_rejected: { idea: string; reason: string }[]
+  tested_rejected: RejectedIdea[]
+  // richer structure for the Methodology page (optional for back-compat with old data)
+  summary?: string
+  spend_ledger?: { bars_usd: number; ticks_usd: number; total_usd: number; note: string }
+  gates?: { name: string; rule: string }[]
+  failure_patterns?: { name: string; desc: string }[]
+  rejected_groups?: RejectedGroup[]
 }
 
 export interface InvestorVerdict {

@@ -8,6 +8,7 @@ const TABS = [
   { href: "/risk",         label: "Risk"       },
   { href: "/expected",     label: "Projection" },
   { href: "/configurator", label: "Strategies" },
+  { href: "/methodology",  label: "Method"     },
   { href: "/history",      label: "History"    },
 ]
 
