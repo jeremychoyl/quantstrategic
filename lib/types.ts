@@ -207,6 +207,47 @@ export interface Strategy16y {
   basis?: string   // "daily" for the combined book block (per-trading-day stats)
 }
 
+export interface RiskBookStats {
+  var95_usd: number
+  var99_usd: number
+  cvar95_usd: number
+  cvar99_usd: number
+  daily_vol_usd: number
+  ann_vol_usd: number
+  worst_day_usd: number
+  best_day_usd: number
+  max_dd_usd: number          // ungated 16y backtest
+  gated_max_dd_usd: number    // deployed (live PF-gate) realized DD
+  n_days: number
+}
+
+export interface RiskStrategy {
+  name: string
+  var95_usd: number
+  cvar95_usd: number
+  daily_vol_usd: number
+  worst_day_usd: number
+  max_dd_usd: number
+  n_days: number
+}
+
+export interface DrawdownPoint {
+  date: string      // YYYY-MM
+  dd_usd: number    // ≤ 0 underwater in USD
+  eq_usd: number    // cumulative equity in USD
+}
+
+export interface RiskBlock {
+  gate: number
+  basis: string
+  min_reliable_n: number
+  book: RiskBookStats
+  drawdown_curve: DrawdownPoint[]
+  per_strategy: RiskStrategy[]
+  correlation_coactive: Record<string, Record<string, number | null>>
+  coactive_n: Record<string, Record<string, number>>
+}
+
 export interface Projections {
   as_of: string
   note: string
@@ -214,6 +255,7 @@ export interface Projections {
   per_strategy: ProjectionStrategy[]
   book: ProjectionBook
   correlation: Record<string, Record<string, number>>
+  risk?: RiskBlock
   ytd_equity?: YtdEquity
   strategy_16y?: Record<string, Strategy16y>
   strategy_ytd?: Record<string, Strategy16y>
