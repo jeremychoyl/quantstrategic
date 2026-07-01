@@ -112,6 +112,30 @@ export default function Factsheet() {
 
         {data && (
           <>
+            {/* Highlights hero — marketing variant only */}
+            {variant === "marketing" && book && (
+              <div className="rounded-xl p-5"
+                   style={{ background: "linear-gradient(135deg, #10241d 0%, var(--surface) 60%)", border: "1px solid #1e3a30" }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: UP }}>
+                  Highlights · 16-year backtest · 1 contract each
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                  {[
+                    { l: "16-year net", v: fmt$(book.total_usd, true) },
+                    { l: "Avg annual P&L", v: fmt$(book.annual_usd, true) },
+                    { l: "Sharpe", v: book.sharpe.toFixed(2) },
+                    { l: "Calmar", v: book.calmar.toFixed(2) },
+                    { l: "Return on capital", v: `${book.return_on_capital_pct.toFixed(1)}%` },
+                  ].map(t => (
+                    <div key={t.l}>
+                      <p className="text-2xl font-black tabular-nums" style={{ color: UP }}>{t.v}</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--muted)" }}>{t.l}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Mandate + key facts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card title="Mandate">
