@@ -26,7 +26,7 @@ export default function History() {
         <div className="mb-5">
           <h1 className="text-xl font-black">Development History</h1>
           <p className="text-sm mt-1" style={{ color: "var(--muted)" }}>
-            Gekko + Gekko-Research · W2 → W66 · {MILESTONES.length} milestones
+            Gekko + Gekko-Research · 2026-05-27 → 06-30 · W2 → W73 · {MILESTONES.length} milestones · live since 2026-06-23
           </p>
         </div>
 
