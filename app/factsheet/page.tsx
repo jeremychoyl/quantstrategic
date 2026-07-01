@@ -231,7 +231,7 @@ export default function Factsheet() {
                 </div>
                 <p className="text-[11px] mt-3 leading-snug" style={{ color: "var(--muted)" }}>
                   Concentration note: ORB &amp; EMA are correlated long-momentum legs (+0.43); DC is the genuine
-                  diversifier. Hard −500 pts/day kill switch halts new entries.
+                  diversifier. A −500 pts/day book-wide kill switch blocks new entries (doesn&apos;t flatten).
                 </p>
               </Card>
               <Card title="Research discipline" sub="Why the book is what it is">

@@ -180,7 +180,7 @@ export default function Risk() {
             <Card title="Live risk controls" sub="What actually limits losses on the deployed book">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <Tile label="Daily kill switch" value="−500 pts" color={DOWN}
-                  caption="Cumulative daily loss halts all new entries for the day (−$1,000 at $2/pt)." />
+                  caption="Book-wide circuit breaker (−$1,000 at $2/pt): once combined realized loss hits −500 pts it blocks new entries for the day. It does NOT flatten open positions, so it caps new risk, not the day's total loss." />
                 <Tile label="Exposure" value="3 × 1 MNQ" color="var(--text)"
                   caption="One contract per strategy. All three legs are long-biased — the book runs net-long NQ." />
                 <Tile label="Min capital" value="$22k"
