@@ -11,6 +11,7 @@ const PerfEquityChart = dynamic(() => import("@/components/PerfCharts").then(m =
 const YearlyBarChart = dynamic(() => import("@/components/PerfCharts").then(m => ({ default: m.YearlyBarChart })), { ssr: false, loading: () => <Skel h={200} /> })
 const MonthlyHeatmap = dynamic(() => import("@/components/MonthlyHeatmap"), { ssr: false, loading: () => <Skel h={200} /> })
 const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), { ssr: false, loading: () => <Skel h={200} /> })
+const BenchmarkChart = dynamic(() => import("@/components/BenchmarkChart"), { ssr: false, loading: () => <Skel h={260} /> })
 
 const fmt$ = (v: number, sign = false) => {
   const s = v < 0 ? "−" : sign && v > 0 ? "+" : ""
@@ -98,6 +99,31 @@ export default function Performance() {
             <Card title="Annual P&L" sub="Yearly net · green = profitable · 1 contract each">
               <YearlyBarChart data={b.monthly} />
             </Card>
+
+            {/* Benchmarks — the "is this worth it" panel (audit P2-10) */}
+            {data?.benchmarks?.curve?.length ? (
+              <Card title="Book vs Benchmarks — 2026 YTD"
+                    sub={`Same $${(data.benchmarks.capital_base / 1000).toFixed(0)}k capital · buy & hold 1 MNQ · 3M T-bill at ${data.benchmarks.tbill_rate_pct}% · risk-adjusted is the pitch, so drawdowns shown side by side`}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  <div><p className="text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Book</p>
+                    <p className="text-xl font-bold tabular-nums" style={{ color: data.benchmarks.summary.book_usd >= 0 ? UP : DOWN }}>
+                      {fmt$(data.benchmarks.summary.book_usd, true)} <span className="text-xs font-normal">({data.benchmarks.summary.book_pct}%)</span></p>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>maxDD {fmt$(-data.benchmarks.summary.book_maxdd_usd)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Buy & hold 1 MNQ</p>
+                    <p className="text-xl font-bold tabular-nums" style={{ color: data.benchmarks.summary.bh_usd >= 0 ? UP : DOWN }}>
+                      {fmt$(data.benchmarks.summary.bh_usd, true)} <span className="text-xs font-normal">({data.benchmarks.summary.bh_pct}%)</span></p>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>maxDD {fmt$(-data.benchmarks.summary.bh_maxdd_usd)}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>T-bill</p>
+                    <p className="text-xl font-bold tabular-nums">{fmt$(data.benchmarks.summary.tbill_usd, true)}</p>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>riskless floor</p></div>
+                  <div><p className="text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Alpha vs B&H</p>
+                    <p className="text-xl font-bold tabular-nums" style={{ color: data.benchmarks.summary.alpha_vs_bh_usd >= 0 ? UP : DOWN }}>
+                      {fmt$(data.benchmarks.summary.alpha_vs_bh_usd, true)}</p>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>book − buy & hold</p></div>
+                </div>
+                <BenchmarkChart data={data.benchmarks.curve} />
+              </Card>
+            ) : null}
 
             {/* Live tearsheet */}
             {live?.summary && (

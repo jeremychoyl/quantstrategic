@@ -318,6 +318,7 @@ export interface DashboardData {
   live_since: string
   demo_since: string
   oos_equity_curve: EquityPoint[]
+  benchmarks?: Benchmarks
   last_7_days: DayPnL[]
   portfolio_stats: PortfolioStats
   active_positions: Position[]
@@ -330,4 +331,16 @@ export interface DashboardData {
   projections?: Projections
   research_discipline?: ResearchDiscipline
   investor_verdict?: InvestorVerdict
+}
+
+export interface BenchmarkPoint { date: string; book: number | null; bh_nq: number; tbill: number }
+export interface Benchmarks {
+  capital_base: number
+  tbill_rate_pct: number
+  curve: BenchmarkPoint[]
+  summary: {
+    book_usd: number; book_pct: number; book_maxdd_usd: number
+    bh_usd: number; bh_pct: number; bh_maxdd_usd: number
+    tbill_usd: number; alpha_vs_bh_usd: number
+  }
 }
