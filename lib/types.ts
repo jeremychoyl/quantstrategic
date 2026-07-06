@@ -331,6 +331,32 @@ export interface DashboardData {
   projections?: Projections
   research_discipline?: ResearchDiscipline
   investor_verdict?: InvestorVerdict
+  swing?: SwingBlock
+}
+
+// Swing awareness — 3d/5d MFE/MAE excursion stats per daily state (16y NQ).
+// Computed nightly by gekko-research swing_awareness.py; awareness only, never a signal.
+export interface SwingHorizon {
+  mfe_p60: number      // 60th-pct upside excursion, pts ("room", long convention)
+  mae_p80: number      // 80th-pct downside excursion, pts ("risk")
+  fwd_med: number      // median close-to-close move over the horizon
+  fwd_win_pct: number  // % of occurrences that closed up
+}
+export interface SwingState {
+  state: string        // e.g. "tdn_eabv_vhigh"
+  state_human: string
+  n: number
+  horizons: Record<string, SwingHorizon>   // keys "3d", "5d"
+}
+export interface SwingBlock {
+  as_of: string
+  state: string        // today's state key
+  state_human: string
+  close: number
+  n: number
+  horizons: Record<string, SwingHorizon>
+  all_states: SwingState[]
+  generated_at: string
 }
 
 export interface BenchmarkPoint { date: string; book: number | null; bh_nq: number; tbill: number }

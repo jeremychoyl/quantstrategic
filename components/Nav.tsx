@@ -9,6 +9,7 @@ const MAIN = [
   { href: "/details",      label: "Details"    },
   { href: "/expected",     label: "Projection" },
   { href: "/configurator", label: "Strategies" },
+  { href: "/swing",        label: "Swing"      },
   { href: "/history",      label: "History"    },
 ]
 
