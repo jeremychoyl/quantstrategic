@@ -5,6 +5,7 @@ import { DashboardData, Projections, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import BookProjection from "@/components/BookProjection"
+import PlanningLadder from "@/components/PlanningLadder"
 import CorrelationMatrix from "@/components/CorrelationMatrix"
 import RatingLegend from "@/components/RatingLegend"
 
@@ -331,6 +332,7 @@ export default function Expected() {
             <BookProjection projections={data.projections} />
             {data.projections.ytd_equity && <BookEquityChart eq={data.projections.ytd_equity} />}
             {data.projections.book_16y && <BookStatBlock b={data.projections.book_16y} />}
+            {data.projections.planning_ladder && <PlanningLadder ladder={data.projections.planning_ladder} />}
           </>
         )}
 

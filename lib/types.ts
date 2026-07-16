@@ -263,6 +263,32 @@ export interface Sizing {
   grid: SizingGridEntry[]
 }
 
+export interface LadderRung {
+  step: number
+  label: string
+  size: number[]            // [orb, ema, dc]
+  size_str: string          // "2-2-1"
+  min_equity: number        // 50%-envelope minimum equity ($)
+  envelope_k: number        // machine-dead-crash envelope ($k)
+  note: string
+  model_ann: number         // gated model $/yr at this rung
+  plan_ann: number          // ⅔ × model ($/yr)
+  plan_mo: number           // plan_ann / 12
+  model_maxdd: number       // daily gated equity trough ($, ≤0)
+}
+export interface PlanningLadder {
+  haircut: number
+  basis: string
+  source: string
+  rungs: LadderRung[]
+  unit: { model_ann: number; plan_ann: number; plan_mo: number; model_maxdd: number }
+  target: {
+    monthly: number; annual: number
+    plan_mo_unit: number; units: number; capital_estimate: number | null
+  }
+  note: string
+}
+
 export interface Projections {
   as_of: string
   note: string
@@ -271,6 +297,7 @@ export interface Projections {
   book: ProjectionBook
   correlation: Record<string, Record<string, number>>
   risk?: RiskBlock
+  planning_ladder?: PlanningLadder
   sizing?: Sizing
   ytd_equity?: YtdEquity
   strategy_16y?: Record<string, Strategy16y>
