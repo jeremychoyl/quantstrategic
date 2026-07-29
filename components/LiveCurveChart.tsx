@@ -24,6 +24,11 @@ export default function LiveCurveChart({ data }: { data: LiveDayCurve[] }) {
         <YAxis tickFormatter={v => `$${v >= 0 ? "+" : ""}${Math.round(v)}`}
                tick={{ fill: "#6b7280", fontSize: 11 }} width={64} />
         <ReferenceLine y={0} stroke="#374151" strokeDasharray="4 2" />
+        {/* 2026-07-27: EMA leg cut over from TradingView's 24h cross to the
+            validated local RTH signal (24h was edgeless, PF 1.02 vs RTH 1.43).
+            Marks where the live EMA finally matches its backtest. */}
+        <ReferenceLine x="2026-07-27" stroke="#7c6af7" strokeDasharray="3 3"
+               label={{ value: "EMA→RTH", position: "top", fill: "#7c6af7", fontSize: 10 }} />
         <Tooltip
           contentStyle={{ background: "#16161f", border: "1px solid #1e1e2e", borderRadius: 8 }}
           labelStyle={{ color: "#94a3b8" }}
