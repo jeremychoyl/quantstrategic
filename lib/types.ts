@@ -359,6 +359,37 @@ export interface DashboardData {
   research_discipline?: ResearchDiscipline
   investor_verdict?: InvestorVerdict
   swing?: SwingBlock
+  seasonality?: Seasonality
+}
+
+// MNQ month-of-year price seasonality (16y NQ RTH daily returns). Computed by
+// gekko-research seasonality.py; DESCRIPTIVE context only, never a signal.
+export interface SeasonalityMonth {
+  m: number
+  name: string
+  avg_month_ret: number   // avg total return of that calendar month, %
+  pos_months: number
+  n_months: number
+  pos_frac: number
+  avg_day: number         // mean daily drift, %
+  win_pct: number
+  day_vol: number
+  t_stat: number
+  e1_day: number
+  e2_day: number
+  both_era: boolean
+  n_days: number
+  label: "bullish" | "firm" | "neutral" | "bearish"
+}
+export interface Seasonality {
+  generated_at: string
+  instrument: string
+  span: { start: string; end: string; n_days: number }
+  months: SeasonalityMonth[]
+  most_bullish: string[]
+  most_bearish: string[]
+  most_volatile: string
+  note: string
 }
 
 // Swing awareness — 3d/5d MFE/MAE excursion stats per daily state (16y NQ).

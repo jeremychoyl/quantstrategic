@@ -4,6 +4,7 @@ import { DashboardData, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import CorrelationMatrix from "@/components/CorrelationMatrix"
+import SeasonalityChart from "@/components/SeasonalityChart"
 
 const UP = "#00d4aa", DOWN = "#ff4d6d", ACCENT2 = "#7c6af7"
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -123,9 +124,12 @@ export default function Analysis() {
             {/* Correlation (shared honest co-active matrix) */}
             {p.risk && <CorrelationMatrix risk={p.risk} />}
 
-            {/* Seasonality */}
+            {/* MNQ instrument month-of-year price seasonality (richer, from seasonality.py) */}
+            <SeasonalityChart seasonality={data?.seasonality} />
+
+            {/* Book P&L by month (ORB+EMA+DC dollars — distinct from the instrument profile above) */}
             {b?.monthly?.length ? (
-              <Card title="Seasonality — average by month" sub="Mean book P&L per calendar month across 2010–2026 · descriptive, not a signal">
+              <Card title="Book P&L by month" sub="Mean book P&L per calendar month across 2010–2026 · descriptive, not a signal">
                 <div className="space-y-1.5">
                   {seasonal.map(s => {
                     const w = (Math.abs(s.avg) / seasonMax) * 50   // half-width each side of center
