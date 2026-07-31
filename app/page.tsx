@@ -227,23 +227,23 @@ export default function Overview() {
         {data?.shadows && data.shadows.items.length > 0 && (
           <div className="mt-6">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h2 className="text-sm font-bold">🕵️ Shadow Tests</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
-                    style={{ background: "#1a2230", color: "var(--muted)", border: "1px solid var(--border)" }}>
+              <h2 className="font-bold" style={{ fontSize: "1.75rem" }}>🕵️ Shadow Tests</h2>
+              <span className="font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                    style={{ fontSize: "1.25rem", background: "#1a2230", color: "var(--muted)", border: "1px solid var(--border)" }}>
                 Paper · review-gated
               </span>
               {data.shadows.next_review && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded tabular-nums"
-                      style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                <span className="font-semibold px-2 py-0.5 rounded tabular-nums"
+                      style={{ fontSize: "1.25rem", background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
                   Next review {data.shadows.next_review}
                 </span>
               )}
             </div>
-            <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>{data.shadows.note}</p>
+            <p className="mb-3" style={{ fontSize: "1.5rem", color: "var(--muted)" }}>{data.shadows.note}</p>
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
               {data.shadows.items.map((it, i) => (
-                <div key={i} className="px-3 py-2 text-xs border-b last:border-b-0"
-                     style={{ borderColor: "var(--border)" }}>
+                <div key={i} className="px-3 py-2 border-b last:border-b-0"
+                     style={{ fontSize: "1.5rem", borderColor: "var(--border)" }}>
                   <div className="font-semibold">
                     {it.medal && <span className="mr-1">{it.medal}</span>}{it.title}
                   </div>
