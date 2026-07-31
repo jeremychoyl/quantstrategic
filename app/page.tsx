@@ -8,6 +8,7 @@ import ReturnsHero from "@/components/ReturnsHero"
 import PnLBarClient from "@/components/PnLBarClient"
 import Positions from "@/components/Positions"
 import ShareCard from "@/components/ShareCard"
+import ColorNums from "@/components/ColorNums"
 
 const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
   ssr: false,
@@ -215,7 +216,7 @@ export default function Overview() {
                      style={{ borderColor: "var(--border)" }}>
                   <span style={{ color: r.pass ? UP : DOWN }}>{r.pass ? "✓" : "✗"}</span>
                   <span className="font-semibold sm:w-44 shrink-0">{r.criterion}</span>
-                  <span className="tabular-nums">{r.now}</span>
+                  <span className="tabular-nums"><ColorNums text={r.now} /></span>
                   <span className="ml-auto" style={{ color: "var(--muted)" }}>need {r.target}</span>
                 </div>
               ))}
@@ -250,7 +251,9 @@ export default function Overview() {
                     <div className="italic mt-0.5" style={{ color: "var(--muted)" }}>{it.read}</div>
                   )}
                   {it.details.map((d, j) => (
-                    <div key={j} className="tabular-nums" style={{ color: "var(--muted)" }}>{d}</div>
+                    <div key={j} className="tabular-nums" style={{ color: "var(--muted)" }}>
+                      <ColorNums text={d} />
+                    </div>
                   ))}
                 </div>
               ))}
