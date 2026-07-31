@@ -222,6 +222,30 @@ export default function Overview() {
             </div>
           </div>
         )}
+
+        {data?.shadows && data.shadows.items.length > 0 && (
+          <div className="mt-6">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h2 className="text-sm font-bold">🕵️ Shadow Tests</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide"
+                    style={{ background: "#1a2230", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                Paper · review-gated
+              </span>
+            </div>
+            <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>{data.shadows.note}</p>
+            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+              {data.shadows.items.map((it, i) => (
+                <div key={i} className="px-3 py-2 text-xs border-b last:border-b-0"
+                     style={{ borderColor: "var(--border)" }}>
+                  <div className="font-semibold">{it.title}</div>
+                  {it.details.map((d, j) => (
+                    <div key={j} className="tabular-nums" style={{ color: "var(--muted)" }}>{d}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

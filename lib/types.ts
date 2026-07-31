@@ -360,6 +360,18 @@ export interface DashboardData {
   investor_verdict?: InvestorVerdict
   swing?: SwingBlock
   seasonality?: Seasonality
+  shadows?: Shadows
+}
+
+// Forward paper-validation of candidate tweaks (NOT live). Mirrors the nightly
+// shadow_digest Telegram; verdicts are review-gated. Built by dashboard_push._shadows().
+export interface ShadowItem {
+  title: string
+  details: string[]
+}
+export interface Shadows {
+  note: string
+  items: ShadowItem[]
 }
 
 // MNQ month-of-year price seasonality (16y NQ RTH daily returns). Computed by
