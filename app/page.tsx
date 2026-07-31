@@ -231,6 +231,12 @@ export default function Overview() {
                     style={{ background: "#1a2230", color: "var(--muted)", border: "1px solid var(--border)" }}>
                 Paper · review-gated
               </span>
+              {data.shadows.next_review && (
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded tabular-nums"
+                      style={{ background: "var(--surface)", color: "var(--muted)", border: "1px solid var(--border)" }}>
+                  Next review {data.shadows.next_review}
+                </span>
+              )}
             </div>
             <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>{data.shadows.note}</p>
             <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>

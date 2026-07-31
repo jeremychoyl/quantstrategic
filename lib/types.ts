@@ -371,6 +371,7 @@ export interface ShadowItem {
 }
 export interface Shadows {
   note: string
+  next_review?: string
   items: ShadowItem[]
 }
 
