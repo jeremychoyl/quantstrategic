@@ -29,34 +29,42 @@ export default function Positions({ positions, mode }: { positions: Position[]; 
         {modeBadge}
       </div>
 
-      <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+      <div className="p-4 space-y-3">
         {positions.map((p, i) => {
           const up = p.pnl_pts >= 0
           return (
-            <div key={i} className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div key={i}
+                 className="rounded-lg px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                 style={{
+                   background: up ? "#12241d" : "#2e1418",
+                   border: `1px solid ${up ? "var(--up)" : "var(--down)"}`,
+                   boxShadow: up ? "0 0 24px rgba(0,212,170,0.18)" : "0 0 24px rgba(255,77,109,0.16)",
+                 }}>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-base" style={{ color: "var(--text)" }}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black leading-none" style={{ color: "var(--text)", fontSize: "1.8rem" }}>
                     {p.strategy}
                   </span>
                   <span className="text-xs px-1.5 py-0.5 rounded font-mono"
-                        style={{ background: p.direction === "Long" ? "#1a2a24" : "#3d1515",
-                                 color: p.direction === "Long" ? "var(--up)" : "var(--down)" }}>
+                        style={{ background: "rgba(0,0,0,0.3)",
+                                 color: p.direction === "Long" ? "var(--up)" : "var(--down)",
+                                 border: `1px solid ${p.direction === "Long" ? "var(--up)" : "var(--down)"}` }}>
                     {p.direction}
                   </span>
                   <span className="text-xs" style={{ color: "var(--muted)" }}>{p.size}</span>
                 </div>
-                <div className="text-xs mt-1" style={{ color: "var(--muted)" }}>
+                <div className="mt-1.5" style={{ color: "var(--muted)", fontSize: "1.35rem" }}>
                   Entry {p.entry_date} @ {p.entry_px.toLocaleString()}
                   &nbsp;·&nbsp;
                   Current {p.current_px.toLocaleString()}
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-black" style={{ color: up ? "var(--up)" : "var(--down)" }}>
-                  {up ? "+" : ""}{p.pnl_usd >= 0 ? "+" : "-"}${Math.abs(p.pnl_usd).toFixed(0)}
+                <p className="text-4xl sm:text-5xl font-black leading-none tabular-nums"
+                   style={{ color: up ? "var(--up)" : "var(--down)" }}>
+                  {p.pnl_usd >= 0 ? "+" : "-"}${Math.abs(p.pnl_usd).toFixed(0)}
                 </p>
-                <p className="text-sm font-medium" style={{ color: up ? "var(--up)" : "var(--down)" }}>
+                <p className="text-sm font-medium mt-1" style={{ color: up ? "var(--up)" : "var(--down)" }}>
                   {up ? "+" : ""}{p.pnl_pts.toFixed(2)} pts
                 </p>
               </div>
