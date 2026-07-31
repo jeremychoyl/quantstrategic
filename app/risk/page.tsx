@@ -5,6 +5,7 @@ import { DashboardData, RiskBlock, Strategy16y } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
 import CorrelationMatrix from "@/components/CorrelationMatrix"
+import ColorNums from "@/components/ColorNums"
 
 const DrawdownChart = dynamic(
   () => import("@/components/RiskCharts").then(m => ({ default: m.DrawdownChart })),
@@ -34,7 +35,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
 }
 
 function Tile({ label, value, caption, color }: {
-  label: string; value: string; caption: string; color?: string
+  label: string; value: React.ReactNode; caption: string; color?: string
 }) {
   return (
     <div className="rounded-xl p-4 flex flex-col gap-2"
@@ -151,7 +152,8 @@ export default function Risk() {
                   caption="Deepest peak-to-trough on the raw backtest — before the live PF-gate." />
                 <Tile label="Max drawdown (deployed)" value={fmt$(risk.book.gated_max_dd_usd)} color={WARN}
                   caption="The live trailing-PF gate sits legs out in bad regimes, cutting realized DD." />
-                <Tile label="Worst / best day" value={`${fmt$(risk.book.worst_day_usd)} / ${fmt$(risk.book.best_day_usd, true)}`}
+                <Tile label="Worst / best day"
+                  value={<ColorNums text={`${fmt$(risk.book.worst_day_usd)} / ${fmt$(risk.book.best_day_usd, true)}`} />}
                   caption="Single-day extremes across the 16-year book." />
               </div>
             </Card>

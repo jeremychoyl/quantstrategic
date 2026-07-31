@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react"
 import { DashboardData, ResearchDiscipline, RejectedIdea } from "@/lib/types"
 import { fetchDashboard } from "@/lib/data"
 import Nav from "@/components/Nav"
+import ColorNums from "@/components/ColorNums"
 
 const UP = "#00d4aa", WARN = "#f59e0b", ACCENT2 = "#7c6af7"
 
@@ -38,7 +39,7 @@ function RejectedRow({ r }: { r: RejectedIdea }) {
         <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>{r.idea}</span>
         <PatternPill pattern={r.pattern} />
       </div>
-      <span className="text-xs leading-snug" style={{ color: "var(--muted)" }}>{r.reason}</span>
+      <span className="text-xs leading-snug" style={{ color: "var(--muted)" }}><ColorNums text={r.reason} /></span>
     </div>
   )
 }
