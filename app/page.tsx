@@ -243,7 +243,12 @@ export default function Overview() {
               {data.shadows.items.map((it, i) => (
                 <div key={i} className="px-3 py-2 text-xs border-b last:border-b-0"
                      style={{ borderColor: "var(--border)" }}>
-                  <div className="font-semibold">{it.title}</div>
+                  <div className="font-semibold">
+                    {it.medal && <span className="mr-1">{it.medal}</span>}{it.title}
+                  </div>
+                  {it.read && (
+                    <div className="italic mt-0.5" style={{ color: "var(--muted)" }}>{it.read}</div>
+                  )}
                   {it.details.map((d, j) => (
                     <div key={j} className="tabular-nums" style={{ color: "var(--muted)" }}>{d}</div>
                   ))}

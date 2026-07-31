@@ -368,6 +368,9 @@ export interface DashboardData {
 export interface ShadowItem {
   title: string
   details: string[]
+  rank?: number
+  medal?: string
+  read?: string
 }
 export interface Shadows {
   note: string
