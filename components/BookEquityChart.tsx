@@ -4,6 +4,7 @@ import {
   Tooltip, CartesianGrid, ReferenceLine, Legend,
 } from "recharts"
 import { YtdEquity } from "@/lib/types"
+import { fmtDate } from "@/lib/data"
 
 const fmt$ = (v: number) =>
   `${v < 0 ? "−" : "+"}$${Math.abs(Math.round(v)).toLocaleString()}`
@@ -39,7 +40,7 @@ export default function BookEquityChart({ eq, focus }: { eq: YtdEquity; focus?: 
         </span>
       </div>
       <p className="text-xs -mt-1" style={{ color: "var(--muted)" }}>
-        {focusLeg ? "1 contract" : "3 strategies · 1 contract each"} · {eq?.since} → {eq?.through}
+        {focusLeg ? "1 contract" : "3 strategies · 1 contract each"} · {fmtDate(eq?.since)} → {fmtDate(eq?.through)}
       </p>
 
       {series.length === 0 ? (

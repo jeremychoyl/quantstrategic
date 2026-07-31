@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav"
 import { MILESTONES } from "@/lib/history"
+import { fmtDate } from "@/lib/data"
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   infra:     { bg: "#1a1a2e", text: "#7c6af7", dot: "#7c6af7" },
@@ -58,7 +59,7 @@ export default function History() {
                 {/* date */}
                 <span className="text-xs tabular-nums min-w-[52px]"
                       style={{ color: "var(--muted)", opacity: 0.6 }}>
-                  {m.date}
+                  {fmtDate(m.date)}
                 </span>
 
                 {/* category dot */}

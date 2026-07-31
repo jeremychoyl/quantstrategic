@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { DashboardData, Strategy16y } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 
 const UP = "#00d4aa", DOWN = "#ff4d6d"
@@ -127,7 +127,7 @@ export default function Performance() {
 
             {/* Live tearsheet */}
             {live?.summary && (
-              <Card title="Live — since inception" sub={`Real fills since ${live.summary.live_since} · small sample, accumulating toward the 100-trade gate`}>
+              <Card title="Live — since inception" sub={`Real fills since ${fmtDate(live.summary.live_since)} · small sample, accumulating toward the 100-trade gate`}>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                   <div><p className="text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Net P&L</p>
                     <p className="text-xl font-bold tabular-nums" style={{ color: live.summary.total_pnl_usd >= 0 ? UP : DOWN }}>{fmt$(live.summary.total_pnl_usd, true)}</p></div>

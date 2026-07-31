@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { DashboardData, RiskBlock, Strategy16y } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 import CorrelationMatrix from "@/components/CorrelationMatrix"
 import ColorNums from "@/components/ColorNums"
@@ -194,7 +194,7 @@ export default function Risk() {
 
             <p className="text-xs" style={{ color: "var(--muted)" }}>
               Basis: {risk.basis}. VaR/CVaR are historical (empirical percentiles of daily P&L), not parametric.
-              {data?.projections?.as_of ? ` Computed ${data.projections.as_of.slice(0, 10)}.` : ""}
+              {data?.projections?.as_of ? ` Computed ${fmtDate(data.projections.as_of)}.` : ""}
             </p>
           </>
         )}

@@ -1,4 +1,5 @@
 import { Position } from "@/lib/types"
+import { fmtDate } from "@/lib/data"
 
 export default function Positions({ positions, mode }: { positions: Position[]; mode: string }) {
   const modeBadge = mode === "live"
@@ -42,7 +43,7 @@ export default function Positions({ positions, mode }: { positions: Position[]; 
                  }}>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-black leading-none" style={{ color: "var(--text)", fontSize: "1.8rem" }}>
+                  <span className="font-black leading-none" style={{ color: "#facc15", fontSize: "1.8rem" }}>
                     {p.strategy}
                   </span>
                   <span className="text-xs px-1.5 py-0.5 rounded font-mono"
@@ -54,7 +55,9 @@ export default function Positions({ positions, mode }: { positions: Position[]; 
                   <span className="text-xs" style={{ color: "var(--muted)" }}>{p.size}</span>
                 </div>
                 <div className="mt-1.5" style={{ color: "var(--muted)", fontSize: "1.35rem" }}>
-                  Entry {p.entry_date} @ {p.entry_px.toLocaleString()}
+                  <span style={{ color: "#ffffff" }}>
+                    Entry {fmtDate(p.entry_date)} @ {p.entry_px.toLocaleString()}
+                  </span>
                   &nbsp;·&nbsp;
                   Current {p.current_px.toLocaleString()}
                 </div>

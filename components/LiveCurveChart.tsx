@@ -1,5 +1,6 @@
 "use client"
 import { LiveDayCurve } from "@/lib/types"
+import { fmtDate } from "@/lib/data"
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   Tooltip, CartesianGrid, ReferenceLine,
@@ -32,6 +33,7 @@ export default function LiveCurveChart({ data }: { data: LiveDayCurve[] }) {
         <Tooltip
           contentStyle={{ background: "#16161f", border: "1px solid #1e1e2e", borderRadius: 8 }}
           labelStyle={{ color: "#94a3b8" }}
+          labelFormatter={(l) => fmtDate(String(l))}
           formatter={(v) => [
             `$${Number(v) >= 0 ? "+" : ""}${Math.round(Number(v)).toLocaleString()}`,
             "Cum P&L",

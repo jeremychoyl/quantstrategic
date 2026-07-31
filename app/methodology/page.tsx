@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { DashboardData, ResearchDiscipline, RejectedIdea } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 import ColorNums from "@/components/ColorNums"
 
@@ -194,7 +194,7 @@ export default function Methodology() {
 
             <p className="text-xs" style={{ color: "var(--muted)" }}>
               Full detail lives in the research repo (CLAUDE.md · REJECTED_IDEAS.md).
-              {rd.as_of ? ` As of ${rd.as_of}.` : ""}
+              {rd.as_of ? ` As of ${fmtDate(rd.as_of)}.` : ""}
             </p>
           </>
         )}

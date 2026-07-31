@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { DashboardData } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 import ReturnsHero from "@/components/ReturnsHero"
 import PnLBarClient from "@/components/PnLBarClient"
@@ -100,7 +100,7 @@ export default function Overview() {
               <div>
                 <h1 className="text-xl font-black tracking-tight">Overview</h1>
                 <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>
-                  Live since {data.live_since} · 3 strategies · 1 MNQ each · $2/pt
+                  Live since {fmtDate(data.live_since)} · 3 strategies · 1 MNQ each · $2/pt
                 </p>
               </div>
               <ShareCard data={data} />
@@ -148,7 +148,7 @@ export default function Overview() {
                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <h2 className="text-sm font-bold mb-1">Live Equity Curve</h2>
                 <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
-                  Actual fills · cumulative P&L since {data.live_since}
+                  Actual fills · cumulative P&L since {fmtDate(data.live_since)}
                 </p>
                 {hasLive
                   ? <LiveCurveChart data={curve} />
@@ -177,7 +177,7 @@ export default function Overview() {
               <div>
                 <h2 className="text-sm font-bold mb-1">Projected Book — 2026 YTD</h2>
                 <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
-                  Backtest/OOS · 1 contract each · 3 live MNQ · {ytd.since} → {ytd.through}
+                  Backtest/OOS · 1 contract each · 3 live MNQ · {fmtDate(ytd.since)} → {fmtDate(ytd.through)}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <LiveStatChip label="Book YTD"        value={fmt$(bookYtd, true)} color={bookYtd >= 0 ? UP : DOWN} />
