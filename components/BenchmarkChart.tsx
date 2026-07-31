@@ -1,5 +1,6 @@
 "use client"
 import { BenchmarkPoint } from "@/lib/types"
+import { fmtDate } from "@/lib/data"
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   Tooltip, CartesianGrid, Legend,
@@ -25,6 +26,7 @@ export default function BenchmarkChart({ data }: { data: BenchmarkPoint[] }) {
         <Tooltip
           contentStyle={{ background: "#16161f", border: "1px solid #1e1e2e", borderRadius: 8 }}
           labelStyle={{ color: "#94a3b8" }}
+          labelFormatter={(l) => fmtDate(String(l))}
           formatter={(v, name) => [fmt(Number(v)), String(name)]}
         />
         <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8" }} />

@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { DashboardData } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 
 const UP = "#00d4aa", DOWN = "#ff4d6d", WARN = "#f59e0b", ACCENT2 = "#7c6af7"
@@ -69,7 +69,7 @@ export default function Factsheet() {
   const live = data?.live_trades?.summary
   const rd = data?.research_discipline
   const iv = data?.investor_verdict
-  const asOf = data?.generated_at?.slice(0, 10)
+  const asOf = data?.generated_at ? fmtDate(data.generated_at) : undefined
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -101,7 +101,7 @@ export default function Factsheet() {
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide"
                     style={{ background: "#1a2a24", color: UP, border: "1px solid #1e3a30" }}>
-                ● Live since {data?.live_since ?? "—"}
+                ● Live since {data?.live_since ? fmtDate(data.live_since) : "—"}
               </span>
               {asOf && <span className="text-xs" style={{ color: "var(--muted)" }}>as of {asOf}</span>}
             </div>
@@ -157,7 +157,7 @@ export default function Factsheet() {
                 <KV k="Market" v="MNQ — Micro Nasdaq-100 ($2 / pt)" />
                 <KV k="Style" v="Intraday momentum + daily mean-reversion" />
                 <KV k="Strategies" v="ORB 30m · EMA cross 5m · DC daily" />
-                <KV k="Inception (live)" v={data.live_since ?? "—"} />
+                <KV k="Inception (live)" v={data.live_since ? fmtDate(data.live_since) : "—"} />
                 <KV k="Execution" v="Tradovate · 1-min bridge · −500/−750 two-tier kill switch" />
                 <KV k="Est. capital" v={book ? `${fmt$(book.capital_estimate_usd)} (margin + DD buffer)` : "—"} />
               </Card>
@@ -165,7 +165,7 @@ export default function Factsheet() {
 
             {/* Performance — live vs backtest */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card title="Live — since inception" sub={`Real fills since ${data.live_since}. Small sample — accumulating toward the 100-trade validation gate.`}>
+              <Card title="Live — since inception" sub={`Real fills since ${fmtDate(data.live_since)}. Small sample — accumulating toward the 100-trade validation gate.`}>
                 <div className="grid grid-cols-2 gap-y-4">
                   <Stat label="Net P&L" value={live ? fmt$(live.total_pnl_usd, true) : "—"} color={(live?.total_pnl_usd ?? 0) >= 0 ? UP : DOWN} />
                   <Stat label="Completed trades" value={live ? `${live.total_trades}` : "—"} sub="algo-only" />
@@ -251,7 +251,7 @@ export default function Factsheet() {
 
             {/* Outside investor's view — honest (full) variant only */}
             {variant === "full" && iv && (
-              <Card title="Outside investor's view" sub={`Adversarial allocator read · ${iv.as_of?.slice(0, 10) ?? ""}`}>
+              <Card title="Outside investor's view" sub={`Adversarial allocator read · ${iv.as_of ? fmtDate(iv.as_of) : ""}`}>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-xs font-bold px-2 py-1 rounded uppercase tracking-wide"
                         style={{

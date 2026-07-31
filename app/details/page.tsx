@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { DashboardData, LiveTrade, LiveDayCurve } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate, fmtDateTime } from "@/lib/data"
 import Nav from "@/components/Nav"
 
 const LiveCurveChart = dynamic(() => import("@/components/LiveCurveChart"), {
@@ -57,10 +57,10 @@ function TradeRow({ t }: { t: LiveTrade }) {
         {t.strategy}
       </td>
       <td className="py-2 pr-3 text-xs whitespace-nowrap" style={{ color: MUTED }}>
-        {t.entry_time_sgt.slice(5)}
+        {fmtDateTime(t.entry_time_sgt)}
       </td>
       <td className="py-2 pr-3 text-xs whitespace-nowrap" style={{ color: MUTED }}>
-        {t.exit_time_sgt.slice(5)}
+        {fmtDateTime(t.exit_time_sgt)}
       </td>
       <td className="py-2 pr-3 text-xs tabular-nums" style={{ color: "var(--text)" }}>
         {t.entry_signal_ref.toFixed(2)}
@@ -137,7 +137,7 @@ export default function Details() {
           <div>
             <h1 className="text-xl font-black tracking-tight">Details</h1>
             <p className="text-xs mt-0.5" style={{ color: MUTED }}>
-              Live trades since {sum?.live_since ?? "—"} · signal ref vs actual fill vs backtest expectancy
+              Live trades since {sum?.live_since ? fmtDate(sum.live_since) : "—"} · signal ref vs actual fill vs backtest expectancy
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function Details() {
             Cumulative P&L — {selectedWeek === "all" ? "All live weeks" : selectedWeek}
           </h2>
           <p className="text-xs mb-4" style={{ color: MUTED }}>
-            Actual fills · {selectedWeek === "all" ? `since ${sum?.live_since ?? "go-live"}` : "selected week"}
+            Actual fills · {selectedWeek === "all" ? `since ${sum?.live_since ? fmtDate(sum.live_since) : "go-live"}` : "selected week"}
           </p>
           {curveData.length > 0
             ? <LiveCurveChart data={curveData} />

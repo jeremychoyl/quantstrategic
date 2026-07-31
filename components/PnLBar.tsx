@@ -1,5 +1,6 @@
 "use client"
 import { DayPnL } from "@/lib/types"
+import { fmtDate } from "@/lib/data"
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis,
   Tooltip, CartesianGrid, Cell, ReferenceLine,
@@ -23,6 +24,7 @@ export default function PnLBar({ data }: { data: DayPnL[] }) {
         <Tooltip
           contentStyle={{ background: "#16161f", border: "1px solid #1e1e2e", borderRadius: 8 }}
           labelStyle={{ color: "#94a3b8" }}
+          labelFormatter={(l) => fmtDate(String(l))}
           formatter={(v) => { const n = Number(v); return [`${n >= 0 ? "+" : ""}${n.toFixed(1)} pts  ($${(n * 2).toFixed(0)})`, "P&L"] }}
         />
         <Bar dataKey="pnl_pts" radius={[3, 3, 0, 0]}>

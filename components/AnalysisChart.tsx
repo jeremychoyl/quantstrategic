@@ -3,6 +3,7 @@ import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
   Tooltip, CartesianGrid, ReferenceLine,
 } from "recharts"
+import { fmtDate } from "@/lib/data"
 
 // Minimal shape — the chart only reads date + combined_pct, so any curve
 // (live MNQ EquityPoint or the 5-strategy BookEquityPoint) is accepted.
@@ -24,6 +25,7 @@ export default function AnalysisChart({ data }: { data: CurvePoint[] }) {
         <ReferenceLine y={0} stroke="#2d2d44" />
         <Tooltip
           contentStyle={{ background: "#16161f", border: "1px solid #1e1e2e", borderRadius: 8 }}
+          labelFormatter={(l) => fmtDate(String(l))}
           formatter={(v) => [`${Number(v) >= 0 ? "+" : ""}${Number(v).toFixed(2)}%`, "Portfolio"]}
         />
         <Line type="monotone" dataKey="combined_pct" stroke="#00d4aa" strokeWidth={2} dot={false} />

@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { DashboardData, BookEquityPoint, PortfolioStats, LiveDayCurve, Sizing } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 import StrategyCard from "@/components/StrategyModal"
 import RatingLegend from "@/components/RatingLegend"
@@ -692,7 +692,7 @@ export default function Configurator() {
           {view === "live" && (
             <div>
               <p className="text-xs font-semibold mb-1" style={{ color: "var(--muted)" }}>
-                LIVE EQUITY CURVE · Actual fills since {data?.live_since ?? "go-live"}
+                LIVE EQUITY CURVE · Actual fills since {data?.live_since ? fmtDate(data.live_since) : "go-live"}
               </p>
               <p className="text-xs mb-4" style={{ color: "var(--muted)" }}>
                 All 3 strategies combined · 1 MNQ each

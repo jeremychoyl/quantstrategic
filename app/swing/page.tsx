@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
 import { DashboardData } from "@/lib/types"
-import { fetchDashboard } from "@/lib/data"
+import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
 import SwingMap from "@/components/SwingMap"
 
@@ -87,7 +87,7 @@ export default function Swing() {
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <Tile label="Today's state" value={swing.state_human.replace("trend20", "trend")}
-                    caption={`${swing.n} similar days in 16y · as of ${swing.as_of} close ${swing.close.toLocaleString()}`} />
+                    caption={`${swing.n} similar days in 16y · as of ${fmtDate(swing.as_of)} close ${swing.close.toLocaleString()}`} />
               {d3 && <Tile label="3-day geometry" value={`+${d3.mfe_p60.toFixed(0)} / −${d3.mae_p80.toFixed(0)}`}
                     caption={`room is ${(d3.mfe_p60 / d3.mae_p80).toFixed(2)}× the risk (60pct MFE / 80pct MAE, pts)`}
                     color={d3.mfe_p60 >= d3.mae_p80 ? ROOM : RISK} />}

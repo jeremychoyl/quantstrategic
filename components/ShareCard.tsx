@@ -1,6 +1,6 @@
 "use client"
 import { DashboardData } from "@/lib/types"
-import { fmtPct, fmtUsd, fmtPts } from "@/lib/data"
+import { fmtPct, fmtUsd, fmtPts, fmtDate } from "@/lib/data"
 import { useState } from "react"
 
 export default function ShareCard({ data }: { data: DashboardData }) {
@@ -31,7 +31,7 @@ export default function ShareCard({ data }: { data: DashboardData }) {
                   <p className="text-2xl font-black" style={{ color: "#00d4aa" }}>QuantStrategic</p>
                   <p className="text-sm" style={{ color: "#6b7280" }}>MNQ Futures · Systematic · {data.bridge_mode.toUpperCase()}</p>
                 </div>
-                <p className="text-xs" style={{ color: "#6b7280" }}>{new Date(data.generated_at).toLocaleDateString()}</p>
+                <p className="text-xs" style={{ color: "#6b7280" }}>{fmtDate(data.generated_at)}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
