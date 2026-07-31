@@ -6,10 +6,11 @@ export default function ColorNums({ text }: { text: string }) {
   return (
     <>
       {text.split(/(\s+)/).map((tok, i) => {
-        // matches +12  -3.5  −$1,234  (ASCII - or unicode − U+2212, as fmt$ emits)
-        const m = tok.match(/^([+\-−])\$?[\d,]+(?:\.\d+)?$/)
-        if (!m) return <span key={i}>{tok}</span>
-        const neg = m[1] === "-" || m[1] === "−"
+        // +win  (loss)  −$1,234  ($662) — signed (ASCII/unicode −) OR accounting brackets
+        const signed = tok.match(/^([+\-−])\$?[\d,]+(?:\.\d+)?$/)
+        const bracket = /^\(\$?[\d,]+(?:\.\d+)?\)$/.test(tok)   // (662) / ($1,988) = loss
+        if (!signed && !bracket) return <span key={i}>{tok}</span>
+        const neg = bracket || signed![1] === "-" || signed![1] === "−"
         return (
           <span key={i} style={{ color: neg ? "var(--down)" : "var(--up)", fontWeight: 600 }}>
             {tok}
