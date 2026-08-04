@@ -19,6 +19,7 @@ const MORE = [
   { href: "/performance", label: "Performance" },
   { href: "/analysis",    label: "Analysis"    },
   { href: "/risk",        label: "Risk"        },
+  { href: "/crisis",      label: "Crisis"      },
   { href: "/methodology", label: "Method"      },
 ]
 
