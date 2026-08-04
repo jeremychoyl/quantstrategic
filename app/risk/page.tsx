@@ -192,6 +192,28 @@ export default function Risk() {
               </div>
             </Card>
 
+            <a href="/crisis" className="block rounded-xl p-5 transition-colors group"
+               style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-bold flex items-center gap-2">
+                    Crisis stress
+                    <span className="text-xs font-normal group-hover:translate-x-0.5 transition-transform inline-block"
+                          style={{ color: "var(--accent)" }}>open →</span>
+                  </h2>
+                  <p className="text-xs mt-0.5 mb-3" style={{ color: "var(--muted)" }}>
+                    How the book fared through 10 financial crises, 2010–2026
+                  </p>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--text2)" }}>
+                    <b style={{ color: "var(--text)" }}>No crisis produced the book&apos;s worst drawdown.</b> The
+                    legs disagree in a panic, so crises net positive or mildly negative; the −$5,417 max DD came
+                    from quiet 2026 chop, not a crash. COVID cost just −$478 live (gate benched ORB) vs −$3,129
+                    traded. Full charts, gated/ungated toggle and per-crisis ledger on the Crisis tab.
+                  </p>
+                </div>
+              </div>
+            </a>
+
             <p className="text-xs" style={{ color: "var(--muted)" }}>
               Basis: {risk.basis}. VaR/CVaR are historical (empirical percentiles of daily P&L), not parametric.
               {data?.projections?.as_of ? ` Computed ${fmtDate(data.projections.as_of)}.` : ""}
