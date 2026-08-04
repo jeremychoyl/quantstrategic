@@ -334,13 +334,13 @@ export default function CrisisPage() {
                     <li><b style={{ color: WARN }}>A violent, chaotic crash</b> (like COVID) — expect a modest,
                       survivable loss, roughly $1k–$3k per 1-1-1 unit over the event, not a blow-up. The system is
                       built to bench the fragile leg when this happens.</li>
-                    <li><b style={{ color: C.dd }}>The one real sting</b> — DC buying a dip that keeps falling for a
+                    <li><b style={{ color: C.dd }}>The one real sting</b>{" "}— DC buying a dip that keeps falling for a
                       few days. That&apos;s exactly what the stop-losses and kill switch are sized to cap.</li>
                   </ul>
                 </div>
 
                 <p>
-                  <b style={{ color: "var(--text)" }}>Bottom line:</b> there is no &ldquo;crisis blows up the
+                  <b style={{ color: "var(--text)" }}>Bottom line:</b>{" "}there is no &ldquo;crisis blows up the
                   account&rdquo; scenario in the record. The book leans on its own disagreement to stay
                   roughly flat-to-positive through panics — the thing that actually costs money is a long, quiet,
                   directionless market where nothing trends.
