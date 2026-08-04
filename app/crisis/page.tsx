@@ -16,6 +16,7 @@ type Variant = {
 type Data = { gated: Variant; ungated: Variant; start: string; end: string; note: string }
 
 const C = { book: "#00d4aa", ORB: "#f59e0b", EMA: "#7c6af7", DC: "#38bdf8", dd: "#ff4d6d" }
+const WARN = "#f5a623"
 const LEGS = ["ORB", "EMA", "DC"] as const
 type Leg = typeof LEGS[number]
 
@@ -299,6 +300,51 @@ export default function CrisisPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            </Card>
+
+            {/* plain-English summary */}
+            <Card title="In plain English" sub="What this means and what to expect in the next crisis">
+              <div className="flex flex-col gap-4 text-sm leading-relaxed" style={{ color: "var(--text2)" }}>
+                <p>
+                  The three strategies react to a crisis in completely different ways, and that&apos;s the point —
+                  they rarely lose at the same time.
+                </p>
+                <ul className="flex flex-col gap-2">
+                  <li><b style={{ color: C.ORB }}>ORB</b> (breakout) hates messy, choppy panics — it got chopped up
+                    in COVID — but when a crisis moves in one clean direction it wins big.</li>
+                  <li><b style={{ color: C.EMA }}>EMA</b> (trend) is the shock absorber: because it can bet on prices
+                    falling as well as rising, it usually <i>makes</i> money in a crisis (its best run was the 2022 bear).</li>
+                  <li><b style={{ color: C.DC }}>DC</b> (dip-buyer) is the wild card: it wins when a crash bounces,
+                    and takes the hardest single hits when a crash keeps falling.</li>
+                </ul>
+                <p>
+                  Because they disagree, the losses mostly cancel out. <b style={{ color: "var(--text)" }}>Not one
+                  major crisis since 2010 caused the book&apos;s worst drawdown</b> — the deepest dip came from a
+                  boring, choppy stretch in 2026, not a crash. A safety switch automatically benched the vulnerable
+                  ORB strategy going into COVID, which is why COVID cost about −$478 instead of the ~−$3,100 it
+                  would have with everything trading.
+                </p>
+
+                <div>
+                  <p className="font-bold mb-2" style={{ color: "var(--text)" }}>What to expect next time</p>
+                  <ul className="flex flex-col gap-2">
+                    <li><b style={{ color: C.book }}>A clean, trending sell-off</b> (like 2022, or the sharp 2024/2025
+                      shocks) — expect the book to do <i>well</i>. These were the best periods.</li>
+                    <li><b style={{ color: WARN }}>A violent, chaotic crash</b> (like COVID) — expect a modest,
+                      survivable loss, roughly $1k–$3k per 1-1-1 unit over the event, not a blow-up. The system is
+                      built to bench the fragile leg when this happens.</li>
+                    <li><b style={{ color: C.dd }}>The one real sting</b> — DC buying a dip that keeps falling for a
+                      few days. That&apos;s exactly what the stop-losses and kill switch are sized to cap.</li>
+                  </ul>
+                </div>
+
+                <p>
+                  <b style={{ color: "var(--text)" }}>Bottom line:</b> there is no &ldquo;crisis blows up the
+                  account&rdquo; scenario in the record. The book leans on its own disagreement to stay
+                  roughly flat-to-positive through panics — the thing that actually costs money is a long, quiet,
+                  directionless market where nothing trends.
+                </p>
               </div>
             </Card>
 
