@@ -133,7 +133,7 @@ export default function CrisisPage() {
              style={{ background: "rgba(0,212,170,0.06)", border: "1px solid var(--border)", borderLeft: "3px solid var(--accent)" }}>
           <p className="text-[11px] font-mono uppercase tracking-widest mb-1.5" style={{ color: "var(--accent)" }}>Key finding</p>
           <p className="text-sm leading-relaxed" style={{ color: "var(--text)" }}>
-            <b>No financial crisis produced the book&apos;s worst drawdown.</b> The three legs disagree in a
+            <b>No financial crisis produced the book&apos;s worst drawdown.</b>{" "}The three legs disagree in a
             panic — EMA&apos;s short side and DC&apos;s bounce cover ORB&apos;s whipsaw — so every crisis nets
             positive or only mildly negative. The −$5,417 max drawdown came from a quiet, directionless 2026 chop
             stretch, <i>not</i> a crash. COVID cost just −$478 live because the 252-day gate benched ORB entirely

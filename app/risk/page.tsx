@@ -205,7 +205,7 @@ export default function Risk() {
                     How the book fared through 10 financial crises, 2010–2026
                   </p>
                   <p className="text-sm leading-relaxed" style={{ color: "var(--text2)" }}>
-                    <b style={{ color: "var(--text)" }}>No crisis produced the book&apos;s worst drawdown.</b> The
+                    <b style={{ color: "var(--text)" }}>No crisis produced the book&apos;s worst drawdown.</b>{" "}The
                     legs disagree in a panic, so crises net positive or mildly negative; the −$5,417 max DD came
                     from quiet 2026 chop, not a crash. COVID cost just −$478 live (gate benched ORB) vs −$3,129
                     traded. Full charts, gated/ungated toggle and per-crisis ledger on the Crisis tab.
