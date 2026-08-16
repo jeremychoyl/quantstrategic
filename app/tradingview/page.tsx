@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import Nav from "@/components/Nav"
 import { TV_NOTES, TvNotes, TvLink, TvGroup } from "@/lib/tvNotes"
 import { fmtDate } from "@/lib/data"
+import PineCatalogue from "@/components/PineCatalogue"
 
 const ACCENT = "#00d4aa", ACCENT2 = "#7c6af7", WARN = "#f59e0b"
 
@@ -147,6 +148,9 @@ export default function TradingView() {
             </div>
           </div>
         </Card>
+
+        {/* every Pine script across both machines */}
+        <PineCatalogue />
 
         {/* takeaways */}
         <div>
