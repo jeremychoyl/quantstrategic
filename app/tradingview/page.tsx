@@ -115,24 +115,24 @@ export default function TradingView() {
         {/* sync channel */}
         <Card
           title="How this page updates"
-          sub="Windows PC → GitHub → dashboard, with no rebuild and nobody at a keyboard">
+          sub="Edit one file, push it, and it appears here — no rebuild, nobody at a keyboard">
           <div className="flex flex-col gap-3">
-            <div className="rounded-lg p-3 font-mono text-[11px] leading-relaxed overflow-x-auto"
+            {/* <pre>, not <div>: the previous version put a bare "\n" inside a div, where
+                whitespace collapses, so the second line ran onto the first. */}
+            <pre className="rounded-lg p-3 m-0 font-mono text-[11px] leading-relaxed overflow-x-auto"
                  style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text2)" }}>
-              <span style={{ color: ACCENT2 }}>Windows / TradingView</span>
-              {"  ──push──▶  "}
-              <span style={{ color: ACCENT }}>quantstrategic-data</span>
-              {"  ──fetch──▶  "}
-              <span style={{ color: WARN }}>this tab</span>
-              {"\n"}
-              {"  tradingview.json                  (public repo)              /api/tradingview"}
-            </div>
+{"edit "}<span style={{ color: ACCENT2 }}>tradingview_notes.json</span>{"\n"}
+{"     │  push\n     ▼\n  "}<span style={{ color: ACCENT2 }}>PineScripts</span>{"           private — you author here\n"}
+{"     │  pull + publish, every 5 min, on the Mac mini\n     ▼\n  "}<span style={{ color: ACCENT }}>quantstrategic-data</span>{"   public\n"}
+{"     │  fetch  /api/tradingview\n     ▼\n  "}<span style={{ color: WARN }}>this tab</span>
+            </pre>
             <p className="text-xs leading-relaxed" style={{ color: "var(--text2)" }}>
               The tab ships with its content compiled in, so it is never blank and never waits on a
               network call. If <code className="font-mono">tradingview.json</code> exists in the data
-              repo it replaces that copy on the next load — the same channel the 5-minute dashboard
-              push already uses, so publishing an update is one <code className="font-mono">git push</code> from
-              the Windows PC and costs no Vercel build.
+              repo it replaces that copy on the next load. Publishing moved off the Windows nightly job
+              to the Mac mini on 2026-08-16 — one writer for that repo instead of two, and edits land in
+              minutes rather than overnight. Allow up to ~5 minutes for the next publish cycle, plus up
+              to ~5 more on the API cache.
             </p>
             <div className="flex items-center gap-2 text-[11px]">
               <span className="inline-block w-2 h-2 rounded-full shrink-0"
