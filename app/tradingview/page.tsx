@@ -4,6 +4,7 @@ import Nav from "@/components/Nav"
 import { TV_NOTES, TvNotes, TvLink, TvGroup } from "@/lib/tvNotes"
 import { fmtDate } from "@/lib/data"
 import PineCatalogue from "@/components/PineCatalogue"
+import TvOutages from "@/components/TvOutages"
 
 const ACCENT = "#00d4aa", ACCENT2 = "#7c6af7", WARN = "#f59e0b"
 
@@ -107,6 +108,9 @@ export default function TradingView() {
             which sends to Tradovate direct. TradingView&apos;s remaining live job is feeding bars.
           </p>
         </div>
+
+        {/* feed outages — a counter up top, as asked */}
+        <TvOutages />
 
         {/* the two reference pages */}
         <div className="grid gap-4 sm:grid-cols-2">
