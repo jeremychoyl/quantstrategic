@@ -9,6 +9,7 @@ const MAIN = [
   { href: "/details",      label: "Details"    },
   { href: "/expected",     label: "Projection" },
   { href: "/configurator", label: "Strategies" },
+  { href: "/tradingview",  label: "TradingView"},
   { href: "/swing",        label: "Swing"      },
   { href: "/history",      label: "History"    },
 ]
@@ -62,7 +63,7 @@ export default function Nav({ generatedAt }: { generatedAt?: string }) {
         <nav className="flex gap-1 items-center">
           {MAIN.map(t => (
             <Link key={t.href} href={t.href}
-                  className="px-3 py-1.5 rounded text-sm font-medium transition-colors"
+                  className="px-3 py-1.5 rounded text-sm font-medium transition-colors whitespace-nowrap"
                   style={tabStyle(path === t.href)}>
               {t.label}
             </Link>

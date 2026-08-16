@@ -1,0 +1,507 @@
+<title>Gekko Levels</title>
+
+<style>
+  /* ── Light palette: complete token set on bare :root ─────────────── */
+  :root {
+    --ground:      #f7f6f3;
+    --surface:     #ffffff;
+    --surface-2:   #eeece7;
+    --edge:        #d9d5cd;
+    --edge-soft:   #e7e3db;
+    --ink:         #15181c;
+    --ink-2:       #4a5058;
+    --ink-3:       #767d86;
+
+    /* Level colours — mirror the indicator's own inputs, darkened for
+       legibility on a light ground. */
+    --amber:   #b06f00;   /* PDH / PDL          */
+    --lav:     #6b4fa8;   /* D SMA20            */
+    --teal:    #0f7a6c;   /* bias long / entry  */
+    --red:     #c62f2b;   /* bias short / stop  */
+    --cyan:    #0670a3;   /* overnight range    */
+    --grey:    #6c7278;   /* session opens      */
+
+    --grid:    #cfcbc2;
+    --shade:   rgba(15,122,108,.07);
+  }
+
+  /* System dark (no explicit stamp) — tokens only */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #0e1216;
+      --surface:   #151b21;
+      --surface-2: #1b232b;
+      --edge:      #2a343d;
+      --edge-soft: #202a33;
+      --ink:       #e8ecef;
+      --ink-2:     #a4aeb8;
+      --ink-3:     #737f8a;
+
+      --amber: #f5a623;
+      --lav:   #b39ddb;
+      --teal:  #26a69a;
+      --red:   #ef5350;
+      --cyan:  #4fc3f7;
+      --grey:  #9099a1;
+
+      --grid:  #2b353e;
+      --shade: rgba(38,166,154,.10);
+    }
+  }
+
+  /* Explicit dark toggle wins in the other direction */
+  :root[data-theme="dark"] {
+    --ground:    #0e1216;
+    --surface:   #151b21;
+    --surface-2: #1b232b;
+    --edge:      #2a343d;
+    --edge-soft: #202a33;
+    --ink:       #e8ecef;
+    --ink-2:     #a4aeb8;
+    --ink-3:     #737f8a;
+
+    --amber: #f5a623;
+    --lav:   #b39ddb;
+    --teal:  #26a69a;
+    --red:   #ef5350;
+    --cyan:  #4fc3f7;
+    --grey:  #9099a1;
+
+    --grid:  #2b353e;
+    --shade: rgba(38,166,154,.10);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .prose { max-width: 68ch; }
+
+  /* ── Masthead ──────────────────────────────────────────────────── */
+  header.mast {
+    padding: 64px 0 34px;
+    border-bottom: 1px solid var(--edge);
+    margin-bottom: 44px;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 500;
+    letter-spacing: -.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  .standfirst {
+    font-size: 18.5px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  /* ── Legend chips ──────────────────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--edge-soft);
+    border-radius: 3px;
+    padding: 6px 11px 6px 9px;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    color: var(--ink-2);
+  }
+  .legend .swatch {
+    width: 15px; height: 3px; border-radius: 2px; flex: none;
+  }
+  .legend b { color: var(--ink); font-weight: 500; }
+
+  /* ── Sections ──────────────────────────────────────────────────── */
+  section { margin: 0 0 60px; }
+  h2 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--edge-soft);
+  }
+  h3 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+    margin: 0 0 10px;
+  }
+  p { margin: 0 0 15px; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .88em;
+    background: var(--surface-2);
+    border-radius: 3px;
+    padding: 1.5px 5px;
+  }
+  strong { font-weight: 600; }
+
+  /* ── Figures ───────────────────────────────────────────────────── */
+  figure {
+    margin: 0 0 20px;
+    background: var(--surface);
+    border: 1px solid var(--edge-soft);
+    border-radius: 5px;
+    padding: 20px 20px 14px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; width: 100%; min-width: 560px; height: auto; }
+  figcaption {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-3);
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--edge-soft);
+  }
+
+  /* ── Callout ───────────────────────────────────────────────────── */
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--edge-soft);
+    border-left: 3px solid var(--amber);
+    border-radius: 3px;
+    padding: 16px 18px;
+    margin: 0 0 20px;
+    max-width: 68ch;
+  }
+  .note.warn { border-left-color: var(--red); }
+  .note p:last-child { margin-bottom: 0; }
+  .note .tag {
+    display: block;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 7px;
+  }
+
+  /* ── Spec table ────────────────────────────────────────────────── */
+  .spec { width: 100%; border-collapse: collapse; font-size: 14.5px; margin-bottom: 20px; }
+  .spec th, .spec td {
+    text-align: left;
+    padding: 10px 14px 10px 0;
+    border-bottom: 1px solid var(--edge-soft);
+    vertical-align: top;
+  }
+  .spec th {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+  .spec td:first-child {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--ink);
+    padding-right: 22px;
+  }
+  .spec td { color: var(--ink-2); }
+
+  footer {
+    border-top: 1px solid var(--edge);
+    padding-top: 20px;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+
+  /* SVG helpers */
+  .lvl   { stroke-width: 1.5; fill: none; }
+  .dash  { stroke-dasharray: 6 5; }
+  .price { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .glyph { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; }
+  .gut   { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; letter-spacing: .04em; }
+  .tick  { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.5px; fill: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Pine v6 · indicator · MNQ1!</p>
+  <h1>GEKKO LEVELS</h1>
+  <p class="standfirst">The handful of prices a day trade is actually measured against — and how each one is read alongside the three live strategies.</p>
+
+  <ul class="legend">
+    <li><span class="swatch" style="background:var(--amber)"></span><b>PDH / PDL</b>&nbsp;prior RTH session</li>
+    <li><span class="swatch" style="background:var(--teal)"></span><b>D CLOSE</b>&nbsp;bias, tinted by side</li>
+    <li><span class="swatch" style="background:var(--lav)"></span><b>D SMA20</b></li>
+    <li><span class="swatch" style="background:var(--cyan)"></span><b>ONH / ONL</b>&nbsp;Globex range</li>
+    <li><span class="swatch" style="background:var(--grey)"></span><b>Opens</b>&nbsp;09:30 · 18:00 · 00:00</li>
+  </ul>
+</header>
+
+<section>
+  <h2>What it is</h2>
+  <div class="prose">
+    <p>Nine levels and nine right-edge labels. The labels are reused rather than accumulated, so the object count stays flat however long the chart runs.</p>
+    <p><strong>It is not a signal source.</strong> No orders, no alerts, nothing reads it programmatically. It is context — for discretionary entries, and for judging whether a mechanical signal is walking into an obstacle.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">The distinction that matters most</span>
+    <p><strong>Prior RTH day, not prior daily bar.</strong> On CME the daily bar runs 18:00→17:00 ET, so it includes Globex. A daily-bar "previous day high" is usually just the overnight high — a different price from the one an opening-range break tests.</p>
+    <p>So two conventions are used deliberately: <strong>PDH and PDL come from the RTH session only</strong>, because that is what ORB breaks. <strong>D CLOSE is the daily-bar close at 17:00 ET</strong>, not the 16:00 RTH close, because that is the series the bridge's bias reads. Matching the mechanism beats matching convention.</p>
+  </div>
+</section>
+
+<section>
+  <h2>01 · ORB — the bias pair decides whether today trades at all</h2>
+  <div class="prose">
+    <p>Bias is set before the open from <code>D CLOSE</code> against <code>D SMA20</code> and cannot flip intraday. Above → <strong>longs only</strong>. Below → <strong>shorts only</strong>. The Mirror's table gives you the verdict; these two lines give you the <em>distance</em> — how close today sits to flipping, which a yes/no readout hides.</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 720 330" role="img" aria-label="ORB long: price breaks above the opening range high, entry fires on the first 5-minute close beyond it, the stop sits at the opening range low, and the position is flattened at 15:55 with the prior day high overhead as the first magnet.">
+      <!-- levels -->
+      <line class="lvl dash" x1="86" y1="52"  x2="668" y2="52"  style="stroke:var(--amber)"/>
+      <line class="lvl"      x1="86" y1="132" x2="668" y2="132" style="stroke:currentColor;opacity:.45"/>
+      <line class="lvl"      x1="86" y1="204" x2="668" y2="204" style="stroke:currentColor;opacity:.45"/>
+      <line class="lvl dash" x1="86" y1="258" x2="668" y2="258" style="stroke:var(--cyan)"/>
+
+      <!-- gutter labels -->
+      <text class="gut" x="80" y="49"  text-anchor="end" style="fill:var(--amber)">PDH</text>
+      <text class="gut" x="80" y="129" text-anchor="end" style="fill:var(--ink-2)">ORH</text>
+      <text class="gut" x="80" y="201" text-anchor="end" style="fill:var(--ink-2)">ORL</text>
+      <text class="gut" x="80" y="255" text-anchor="end" style="fill:var(--cyan)">ONL</text>
+
+      <!-- opening range box -->
+      <rect x="150" y="132" width="104" height="72" fill="var(--shade)" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/>
+      <text class="tick" x="202" y="224" text-anchor="middle">opening range</text>
+
+      <!-- price -->
+      <polyline class="price" points="92,232 112,222 132,212 150,190 168,152 186,186 204,146 222,172 240,140 254,150 272,134 288,126 302,120 330,104 360,92 392,80 424,66 452,60 480,64 510,74 540,80 570,84 600,88 626,92"/>
+
+      <!-- entry -->
+      <circle cx="288" cy="126" r="6" fill="var(--teal)"/>
+      <line x1="288" y1="126" x2="288" y2="204" stroke="var(--red)" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <text class="glyph" x="298" y="112" style="fill:var(--teal)">entry — first 5m close &gt; ORH</text>
+
+      <!-- stop -->
+      <g stroke="var(--red)" stroke-width="2">
+        <line x1="283" y1="199" x2="293" y2="209"/>
+        <line x1="293" y1="199" x2="283" y2="209"/>
+      </g>
+      <text class="glyph" x="302" y="222" style="fill:var(--red)">stop = far side of range</text>
+
+      <!-- exit -->
+      <circle cx="626" cy="92" r="6" fill="none" stroke="var(--teal)" stroke-width="2"/>
+      <text class="glyph" x="618" y="76" text-anchor="end" style="fill:var(--ink-2)">exit 15:55 EOD flat</text>
+
+      <!-- time axis -->
+      <line x1="86" y1="292" x2="668" y2="292" stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="150" y="308" text-anchor="middle">09:30</text>
+      <text class="tick" x="254" y="308" text-anchor="middle">10:00</text>
+      <text class="tick" x="420" y="308" text-anchor="middle">entry window → 15:30</text>
+      <text class="tick" x="626" y="308" text-anchor="middle">15:55</text>
+    </svg>
+    <figcaption>ORB long with bias <em>longs only</em>. PDH is the first magnet overhead — a break with a prior-day level eight points away is a different trade from a break into open air.</figcaption>
+  </figure>
+
+  <div class="prose">
+    <p>Read <code>PDH</code> and <code>ONH</code> <em>before</em> taking an upside break, <code>PDL</code> and <code>ONL</code> before a downside one. Same signal, different room. Where the range edge sits almost on top of an overnight extreme, the break has to clear two levels at once and failures cluster there.</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="ORB skip: with bias set to longs only, the opening range breaks downward first, which cancels trading for the entire day rather than waiting for a long.">
+      <line class="lvl"      x1="86" y1="96"  x2="668" y2="96"  style="stroke:currentColor;opacity:.45"/>
+      <line class="lvl"      x1="86" y1="168" x2="668" y2="168" style="stroke:currentColor;opacity:.45"/>
+      <line class="lvl dash" x1="86" y1="216" x2="668" y2="216" style="stroke:var(--cyan)"/>
+      <line class="lvl dash" x1="86" y1="252" x2="668" y2="252" style="stroke:var(--amber)"/>
+
+      <text class="gut" x="80" y="93"  text-anchor="end" style="fill:var(--ink-2)">ORH</text>
+      <text class="gut" x="80" y="165" text-anchor="end" style="fill:var(--ink-2)">ORL</text>
+      <text class="gut" x="80" y="213" text-anchor="end" style="fill:var(--cyan)">ONL</text>
+      <text class="gut" x="80" y="249" text-anchor="end" style="fill:var(--amber)">PDL</text>
+
+      <rect x="150" y="96" width="104" height="72" fill="var(--shade)" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/>
+      <text class="tick" x="202" y="188" text-anchor="middle">opening range</text>
+
+      <polyline class="price" points="92,146 112,138 132,132 150,120 168,108 186,140 204,112 222,150 240,132 254,158 272,172 290,182 316,196 348,208 382,214 416,222 452,228 490,232 528,230 566,236 604,240 640,244"/>
+
+      <g stroke="var(--red)" stroke-width="2.2">
+        <line x1="266" y1="167" x2="278" y2="179"/>
+        <line x1="278" y1="167" x2="266" y2="179"/>
+      </g>
+      <text class="glyph" x="290" y="166" style="fill:var(--red)">first 5m close &lt; ORL — counter-trend</text>
+
+      <rect x="290" y="176" width="212" height="26" rx="3" fill="var(--surface-2)" stroke="var(--red)" stroke-width="1"/>
+      <text class="glyph" x="302" y="193" style="fill:var(--red)">SKIP — no trade for the rest of the day</text>
+
+      <text class="glyph" x="92" y="34" style="fill:var(--teal)">bias: LONGS only</text>
+      <line x1="86" y1="276" x2="668" y2="276" stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="150" y="292" text-anchor="middle">09:30</text>
+      <text class="tick" x="254" y="292" text-anchor="middle">10:00</text>
+    </svg>
+    <figcaption>The failure case that costs the most to misread. A counter-trend first break does not mean "wait for a long" — the day is over. The Mirror's ORB row reads <code>skipped</code>.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>02 · EMA cross — the opens tell you where the series resumes</h2>
+  <div class="prose">
+    <p>The averages advance on <strong>RTH bars only</strong>. The series picks up again at the 09:30 open and ignores the overnight gap entirely — which is why the RTH open level matters more here than it looks.</p>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 720 320" role="img" aria-label="Bilateral EMA cross: a long opens when the fast average crosses up while price is above the slow average, reverses directly into a short on the opposite cross below it, and flattens at the end of the day with no stop.">
+      <line class="lvl" x1="86" y1="176" x2="668" y2="176" style="stroke:var(--grey)"/>
+      <text class="gut" x="80" y="173" text-anchor="end" style="fill:var(--grey)">EMA200</text>
+
+      <line class="lvl dash" x1="86" y1="60" x2="668" y2="60" style="stroke:var(--cyan)"/>
+      <text class="gut" x="80" y="57" text-anchor="end" style="fill:var(--cyan)">ONH</text>
+
+      <!-- RTH open marker -->
+      <line x1="140" y1="40" x2="140" y2="268" stroke="var(--grey)" stroke-width="1" stroke-dasharray="4 4"/>
+      <text class="tick" x="146" y="46" style="fill:var(--grey)">09:30 open — series resumes here</text>
+
+      <!-- slow ema -->
+      <path d="M92,196 C160,190 220,168 290,150 C360,132 420,132 470,150 C520,168 580,196 668,208" fill="none" stroke="var(--lav)" stroke-width="2"/>
+      <!-- fast ema -->
+      <path d="M92,214 C140,206 180,150 224,138 C262,128 300,120 336,114 C372,108 400,150 436,176 C470,200 512,214 556,220 C596,226 634,224 668,220" fill="none" stroke="currentColor" stroke-width="2"/>
+
+      <circle cx="224" cy="138" r="6" fill="var(--teal)"/>
+      <text class="glyph" x="234" y="126" style="fill:var(--teal)">LONG — fast crosses up, price &gt; EMA200</text>
+
+      <circle cx="436" cy="176" r="6" fill="var(--red)"/>
+      <text class="glyph" x="446" y="166" style="fill:var(--red)">REVERSE straight to SHORT</text>
+      <text class="tick"  x="446" y="182">cross down while price &lt; EMA200</text>
+
+      <circle cx="654" cy="220" r="6" fill="none" stroke="var(--teal)" stroke-width="2"/>
+      <text class="glyph" x="646" y="242" text-anchor="end" style="fill:var(--ink-2)">exit: reverse cross or 15:55 EOD · no stop</text>
+
+      <text class="glyph" x="92" y="290" style="fill:var(--lav)">EMA100</text>
+      <text class="glyph" x="152" y="290" style="fill:var(--ink-2)">EMA9</text>
+      <text class="glyph" x="206" y="290" style="fill:var(--ink-3)">requires the ATR33p gate open</text>
+    </svg>
+    <figcaption>Bilateral: the down-cross does not flatten to cash, it reverses the position. There is no stop — exits are the opposite cross or the end of the day.</figcaption>
+  </figure>
+
+  <div class="note warn">
+    <span class="tag">What the overnight range warns you about</span>
+    <p>A gap through <code>ONH</code> or <code>ONL</code> is the classic false-cross setup: price gaps, the 09:30 open lands far from EMA200, and the first cross of the session fires into an already-extended move. Seeing the gap measured against the overnight range is the signal that the cross is <em>chasing</em> rather than leading.</p>
+  </div>
+</section>
+
+<section>
+  <h2>03 · DC — the swing leg, and the only one holding overnight</h2>
+
+  <figure>
+    <svg viewBox="0 0 720 300" role="img" aria-label="DC mean reversion: a daily close below the prior ten-day low arms the setup, entry follows at 09:30 the next morning, and the position exits on the first close above the signal day's close or at a five-day time stop.">
+      <line class="lvl dash" x1="86" y1="98"  x2="668" y2="98"  style="stroke:currentColor;opacity:.5"/>
+      <line class="lvl"      x1="86" y1="196" x2="668" y2="196" style="stroke:var(--cyan)"/>
+      <text class="gut" x="80" y="95"  text-anchor="end" style="fill:var(--ink-2)">signal-day</text>
+      <text class="gut" x="80" y="108" text-anchor="end" style="fill:var(--ink-3)">close</text>
+      <text class="gut" x="80" y="193" text-anchor="end" style="fill:var(--cyan)">DC10 low</text>
+
+      <polyline class="price" points="100,120 140,138 180,160 220,182 258,214 300,208 340,186 380,164 420,140 460,116 500,100 540,88"/>
+
+      <!-- signal -->
+      <circle cx="258" cy="214" r="6" fill="var(--red)"/>
+      <text class="glyph" x="248" y="240" text-anchor="middle" style="fill:var(--red)">daily close</text>
+      <text class="tick"  x="248" y="254" text-anchor="middle">below DC10 low</text>
+
+      <!-- entry -->
+      <circle cx="300" cy="208" r="6" fill="var(--teal)"/>
+      <text class="glyph" x="312" y="228" style="fill:var(--teal)">entry 09:30–09:40 next day</text>
+
+      <!-- exit -->
+      <circle cx="500" cy="100" r="6" fill="none" stroke="var(--teal)" stroke-width="2"/>
+      <text class="glyph" x="512" y="92" style="fill:var(--teal)">exit — first close above signal-day close</text>
+      <text class="tick"  x="512" y="106">checked from 15:30 ET · or day-5 time stop</text>
+
+      <!-- day ticks -->
+      <line x1="86" y1="272" x2="668" y2="272" stroke="var(--grid)" stroke-width="1"/>
+      <text class="tick" x="258" y="288" text-anchor="middle">d0</text>
+      <text class="tick" x="300" y="288" text-anchor="middle">d1</text>
+      <text class="tick" x="380" y="288" text-anchor="middle">d2</text>
+      <text class="tick" x="460" y="288" text-anchor="middle">d3</text>
+      <text class="tick" x="540" y="288" text-anchor="middle">d4</text>
+    </svg>
+    <figcaption>DC runs on daily bars and holds for days, not hours — it is the only leg that carries risk through a close.</figcaption>
+  </figure>
+
+  <div class="prose">
+    <p>Because DC holds overnight, <code>ONH</code> and <code>ONL</code> stop being trivia and become the gap risk — they are the first prices the next session's inventory has to deal with. <code>PDL</code> is the level to watch on the approach: a daily close below the 10-day low usually happens on a day that has already taken out the prior day's low.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Behaviour</h2>
+  <table class="spec">
+    <tr><th>Value</th><th>Commits</th></tr>
+    <tr><td>PDH / PDL</td><td>16:00 ET, at the RTH session close</td></tr>
+    <tr><td>ONH / ONL</td><td>09:30 ET, when the Globex session ends</td></tr>
+    <tr><td>D CLOSE · D SMA20</td><td>Previous-bar daily offsets — locked before the open</td></tr>
+    <tr><td>Opens</td><td>On the first bar of each session</td></tr>
+  </table>
+  <div class="prose">
+    <p>Every level freezes once committed. Nothing recalculates inside the session you are trading.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">Works on any timeframe — and why that took a fix</span>
+    <p>Session levels are computed on a fixed <strong>5-minute basis</strong>, not on the chart's own bars, so a bar always starts exactly on 09:30, 18:00 and 00:00 ET whatever you are viewing. Five-minute granularity is lossless for session highs and lows, since 5m bars aggregate the minutes inside them.</p>
+    <p>Detecting sessions from chart bars — what most levels scripts do, and what v1.2 of this one did — breaks silently on any timeframe whose bars don't start on the session edge. Measured on a 1h chart against a known-good 5m read:</p>
+    <table class="spec" style="margin-top:14px">
+      <tr><th>Level</th><th>5m</th><th>1h</th><th>Error</th></tr>
+      <tr><td>PDH</td><td>30,280.75</td><td>30,272.25</td><td style="color:var(--red)">−8.50</td></tr>
+      <tr><td>RTH open</td><td>30,241.50</td><td>30,226.25</td><td style="color:var(--red)">−15.25</td></tr>
+      <tr><td>Other 7</td><td colspan="2">identical</td><td style="color:var(--teal)">correct</td></tr>
+    </table>
+    <p>Only the two levels touching the 09:30 boundary broke. The overnight range and the 18:00 / 00:00 opens were fine because those edges land on hourly bars, and PDL matched purely by luck — that session's low happened to fall outside the misaligned first hour. <strong>Seven of nine levels correct is exactly the kind of bug you trade against for months without noticing.</strong></p>
+  </div>
+</section>
+
+<footer>
+  GEKKO LEVELS v1.3 · Pine v6 · canonical source <code>PineScripts/gekko_levels.pine</code><br>
+  All times anchored to America/New_York — CME's exchange timezone is Chicago, so ET session strings are passed explicitly.
+</footer>
+
+</div>
