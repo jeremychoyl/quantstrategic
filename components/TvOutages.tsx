@@ -21,6 +21,7 @@ type Data = {
   sessions_assessed: number; first_session: string; last_session: string
   outage_sessions: number; bars_expected: number; bars_lost: number
   bars_lost_pct: number; or_lost_sessions: number; net_effect_usd: number
+  material_outages?: number; material_dates?: string[]
   outages: Outage[]
 }
 
@@ -62,6 +63,10 @@ export default function TvOutages() {
 
   const rows = showAll ? d.outages : d.outages.slice(0, 5)
   const costly = d.net_effect_usd
+  // How many outages actually moved money. With n=1 the headline is one lucky
+  // escape, and saying "the missed trades were losers" would imply a pattern the
+  // evidence does not support.
+  const material = d.material_outages
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,7 +91,9 @@ export default function TvOutages() {
         <Tile n={`${costly >= 0 ? "+" : "−"}$${Math.abs(Math.round(costly)).toLocaleString()}`}
               label="realised effect"
               color={costly >= 0 ? ACCENT : DOWN}
-              note={costly >= 0 ? "in our favour — the missed trades were losers" : "genuine cost"} />
+              note={material === 1
+                ? "from a single session — not a pattern"
+                : `across ${material ?? 0} sessions that moved money`} />
       </div>
 
       <p className="text-[11px] leading-relaxed rounded-lg p-3"
@@ -96,6 +103,14 @@ export default function TvOutages() {
         gate was open <i>and</i> the deployed backtest actually traded that day — usually neither. ORB is
         measured because it is fully feed-dependent; EMA and DC are flagged rather than measured, since
         their exposure is partial and claiming a number would be false precision.
+        {material === 1 && d.material_dates?.[0] && (
+          <>
+            {" "}<b style={{ color: WARN }}>Read the {costly >= 0 ? "+" : "−"}$
+            {Math.abs(Math.round(costly))} as luck, not resilience:</b> every dollar of it comes from a
+            single session ({fmtDate(d.material_dates[0])}) where the trade we missed happened to be a
+            loser. One session the other way and the same reliability produces a real cost.
+          </>
+        )}
       </p>
 
       <div className="rounded-xl overflow-x-auto" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
