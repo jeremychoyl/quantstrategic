@@ -1,0 +1,323 @@
+<title>Gekko Mirror</title>
+
+<style>
+  :root {
+    --ground:    #f7f6f3;
+    --surface:   #ffffff;
+    --surface-2: #eeece7;
+    --edge:      #d9d5cd;
+    --edge-soft: #e7e3db;
+    --ink:       #15181c;
+    --ink-2:     #4a5058;
+    --ink-3:     #767d86;
+
+    /* Mirror's own table palette: white = ORB block, yellow = EMA, blue = DC */
+    --orb:   #4a5058;
+    --ema:   #8a6d00;
+    --dc:    #1263a8;
+    --up:    #0f7a6c;
+    --down:  #c62f2b;
+    --quiet: #6c7278;
+    --grid:  #cfcbc2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #0e1216;
+      --surface:   #151b21;
+      --surface-2: #1b232b;
+      --edge:      #2a343d;
+      --edge-soft: #202a33;
+      --ink:       #e8ecef;
+      --ink-2:     #a4aeb8;
+      --ink-3:     #737f8a;
+
+      --orb:   #ebeef5;
+      --ema:   #f0cd46;
+      --dc:    #5aa5ff;
+      --up:    #26a69a;
+      --down:  #ef5350;
+      --quiet: #9099a1;
+      --grid:  #2b353e;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:    #0e1216;
+    --surface:   #151b21;
+    --surface-2: #1b232b;
+    --edge:      #2a343d;
+    --edge-soft: #202a33;
+    --ink:       #e8ecef;
+    --ink-2:     #a4aeb8;
+    --ink-3:     #737f8a;
+
+    --orb:   #ebeef5;
+    --ema:   #f0cd46;
+    --dc:    #5aa5ff;
+    --up:    #26a69a;
+    --down:  #ef5350;
+    --quiet: #9099a1;
+    --grid:  #2b353e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap  { max-width: 1000px; margin: 0 auto; }
+  .prose { max-width: 68ch; }
+
+  header.mast {
+    padding: 64px 0 34px;
+    border-bottom: 1px solid var(--edge);
+    margin-bottom: 44px;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 14px;
+  }
+  h1 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(30px, 5vw, 46px); font-weight: 500; letter-spacing: -.02em;
+    line-height: 1.08; text-wrap: balance; margin: 0 0 18px;
+  }
+  .standfirst {
+    font-size: 18.5px; line-height: 1.55; color: var(--ink-2);
+    max-width: 62ch; margin: 0;
+  }
+
+  section { margin: 0 0 60px; }
+  h2 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 20px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--edge-soft);
+  }
+  h3 {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 17px; font-weight: 600; margin: 0 0 8px;
+  }
+  p { margin: 0 0 15px; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .88em; background: var(--surface-2); border-radius: 3px; padding: 1.5px 5px;
+  }
+  strong { font-weight: 600; }
+
+  /* The status table, rendered as it appears on the chart */
+  .tbl-wrap { overflow-x: auto; margin: 0 0 22px; }
+  table.rows { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 620px; }
+  table.rows th, table.rows td {
+    text-align: left; padding: 11px 16px 11px 0;
+    border-bottom: 1px solid var(--edge-soft); vertical-align: top;
+  }
+  table.rows th {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 500;
+  }
+  td.key {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13.5px; white-space: nowrap; padding-right: 20px; font-weight: 600;
+  }
+  td.val {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; color: var(--ink-2); white-space: nowrap; padding-right: 20px;
+  }
+  td.mean { color: var(--ink-2); }
+  .k-orb { color: var(--orb); }
+  .k-ema { color: var(--ema); }
+  .k-dc  { color: var(--dc); }
+
+  .blockhead {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    padding-top: 22px !important;
+  }
+
+  .note {
+    background: var(--surface); border: 1px solid var(--edge-soft);
+    border-left: 3px solid var(--ema); border-radius: 3px;
+    padding: 16px 18px; margin: 0 0 20px; max-width: 68ch;
+  }
+  .note.warn { border-left-color: var(--down); }
+  .note p:last-child { margin-bottom: 0; }
+  .note .tag {
+    display: block;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: 7px;
+  }
+
+  footer {
+    border-top: 1px solid var(--edge); padding-top: 20px;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; color: var(--ink-3);
+  }
+  a { color: var(--dc); }
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">Pine v6 · indicator · MNQ1! 5-minute</p>
+  <h1>GEKKO MIRROR 150826</h1>
+  <p class="standfirst">A chart mirror of the three strategies running in <code>bridge.py</code>. It shows you what the bots are doing — it does not do any of it.</p>
+</header>
+
+<section>
+  <h2>What it is</h2>
+  <div class="prose">
+    <p><strong>Visualisation only.</strong> It places no orders, and nothing downstream reads it. Every signal it draws is computed independently on the Mac mini; this is a second opinion rendered on the chart, not the thing making decisions.</p>
+    <p>That independence is the point. If the Mirror and the bridge ever disagree, one of them has a bug — and you can see it.</p>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">Run it on 5-minute only</span>
+    <p>The EMAs advance <strong>once per chart bar</strong>. On a 30-minute chart <code>EMA9</code> becomes roughly an EMA54 in 5-minute terms, and the <code>EMA</code>, <code>EMA9/100</code> and <code>EMA exit</code> rows will show crosses the bridge never took. The ORB trigger shifts too — it fires on a 30m close instead of the 5m close the bridge acts on.</p>
+    <p>The <code>D Bias</code>, <code>ATR gate</code> and <code>DC</code> rows are safe at any timeframe; they come from daily data.</p>
+  </div>
+</section>
+
+<section>
+  <h2>The status table, row by row</h2>
+  <div class="tbl-wrap">
+    <table class="rows">
+      <tr><th>Row</th><th>Example</th><th>What it means</th></tr>
+
+      <tr><td colspan="3" class="blockhead" style="color:var(--orb)">Bias &amp; ORB — white labels</td></tr>
+      <tr>
+        <td class="key k-orb">D Bias</td>
+        <td class="val">LONGS only</td>
+        <td class="mean">Yesterday's <strong>daily-bar close</strong> against the <strong>daily SMA20</strong>. Locked before the open, cannot flip intraday. Gates <strong>ORB only</strong>.</td>
+      </tr>
+      <tr>
+        <td class="key k-orb">ORB</td>
+        <td class="val">armed / traded / skipped</td>
+        <td class="mean">Or <code>LONG @ price</code> while in a trade. <strong>skipped</strong> means a counter-trend first break killed the day — not "waiting".</td>
+      </tr>
+      <tr>
+        <td class="key k-orb">ORB stop</td>
+        <td class="val">—</td>
+        <td class="mean">Far side of the opening range. Only populated while in an ORB trade, so <code>—</code> confirms flat.</td>
+      </tr>
+      <tr>
+        <td class="key k-orb">ORB exit</td>
+        <td class="val">stop @27997</td>
+        <td class="mean">How the last ORB trade ended — <code>stop @</code> or <code>EOD @</code>. <strong>Not necessarily today</strong> (see below).</td>
+      </tr>
+
+      <tr><td colspan="3" class="blockhead" style="color:var(--ema)">ATR gate &amp; EMA — yellow labels</td></tr>
+      <tr>
+        <td class="key k-ema">ATR gate</td>
+        <td class="val">open</td>
+        <td class="mean">Yesterday's daily ATR(14)/close against the 33rd percentile of the trailing 252 days. Gates <strong>EMA only</strong> — not ORB, not DC. Fixed before the open.</td>
+      </tr>
+      <tr>
+        <td class="key k-ema">EMA</td>
+        <td class="val">SHORT @ 29631.25</td>
+        <td class="mean">Current position: <code>LONG @</code>, <code>SHORT @</code>, or <code>flat</code>.</td>
+      </tr>
+      <tr>
+        <td class="key k-ema">EMA9/100</td>
+        <td class="val">above (bull)</td>
+        <td class="mean">Raw relationship of the two fast averages. <strong>A readout, not a signal</strong> — it says nothing about the EMA200 filter or the ATR gate.</td>
+      </tr>
+      <tr>
+        <td class="key k-ema">EMA exit</td>
+        <td class="val">reverse @29631.25</td>
+        <td class="mean">How the last EMA position ended — <code>reverse @</code> or <code>EOD @</code>. A reverse shows the same price as the new entry, because the flip closes and opens on one bar.</td>
+      </tr>
+
+      <tr><td colspan="3" class="blockhead" style="color:var(--dc)">DC — blue labels</td></tr>
+      <tr>
+        <td class="key k-dc">DC</td>
+        <td class="val">watching</td>
+        <td class="mean">Then <code>signal — enter 09:30</code>, then <code>LONG @ price (dN)</code> where N is days held, counting toward the day-5 time stop.</td>
+      </tr>
+      <tr>
+        <td class="key k-dc">DC10 low</td>
+        <td class="val">27204.75</td>
+        <td class="mean">The prior 10-day daily low. Yesterday's daily close must finish <strong>below</strong> this to arm tomorrow's entry.</td>
+      </tr>
+      <tr>
+        <td class="key k-dc">DC exit</td>
+        <td class="val">up-close @28403</td>
+        <td class="mean">How the last DC trade ended — up-close or day-5 timeout.</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Three things that mislead if you don't know them</h2>
+
+  <div class="note warn">
+    <span class="tag">1 · The three exit rows are not "today"</span>
+    <p>The daily reset clears the ORB range, flags and side — but <strong>not</strong> <code>ORB exit</code>, <code>EMA exit</code> or <code>DC exit</code>. Those persist indefinitely until the next exit overwrites them.</p>
+    <p>So an <code>ORB exit</code> of <code>stop @27997</code> while price is near 30,200 is not a live number — it is a record from an earlier session. Read all three as <em>"most recent, whenever that was."</em></p>
+  </div>
+
+  <div class="note">
+    <span class="tag">2 · "skipped" is different from "traded"</span>
+    <p>A counter-trend first break sets the same "ORB is finished today" flag as a real entry does. Until 2026-08-16 the table printed <code>done</code> for both, so a dead day and a completed trade were indistinguishable.</p>
+    <p>They are now separated: <code>traded</code>, <code>skipped</code>, <code>armed</code>.</p>
+  </div>
+
+  <div class="note">
+    <span class="tag">3 · The bias pair only gates ORB; the ATR gate only gates EMA</span>
+    <p>They sit next to each other in the table but govern different legs. <code>D Bias</code> decides whether ORB can trade at all today. <code>ATR gate</code> decides whether the EMA is armed. Neither touches DC.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Alerts</h2>
+  <div class="prose">
+    <p>Six conditions, all <strong>notifications only</strong> — no webhook, nothing consumes them. The bridge computes every leg locally.</p>
+  </div>
+  <div class="tbl-wrap">
+    <table class="rows">
+      <tr><th>Slot</th><th>Alert</th><th>Fires when</th></tr>
+      <tr><td class="val">plot_9</td>  <td class="key k-orb">Gekko ORB entry</td>        <td class="mean">ORB takes a long or short</td></tr>
+      <tr><td class="val">plot_10</td> <td class="key k-orb">Gekko ORB skip</td>         <td class="mean">Counter-trend break — the day is dead</td></tr>
+      <tr><td class="val">plot_11</td> <td class="key k-dc">Gekko DC entry</td>          <td class="mean">DC mean-reversion entry</td></tr>
+      <tr><td class="val">plot_12</td> <td class="key k-dc">Gekko DC exit</td>           <td class="mean">DC position closes</td></tr>
+      <tr><td class="val">plot_13</td> <td class="key k-ema">Gekko EMA entry/reverse</td><td class="mean">EMA goes long, short, or reverses either way</td></tr>
+      <tr><td class="val">plot_14</td> <td class="key k-ema">Gekko EMA exit</td>         <td class="mean">EMA flattens at end of day</td></tr>
+    </table>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">Two rules for these alerts</span>
+    <p><strong>Never create "Any alert() function call".</strong> That is the retired Pickmytrades webhook. The bridge stopped reading it on 2026-07-27 and its message is raw JSON carrying the webhook secret.</p>
+    <p><strong>Never insert a new condition above an existing one.</strong> TradingView binds a saved alert to a <em>plot index</em>, not a name — a live alert stores <code>alert_cond_id: "plot_11"</code>. Adding a condition higher up shifts everything below it, and saved alerts silently start firing on the wrong thing while keeping their old names. New conditions go at the bottom.</p>
+    <p>The EMA condition is deliberately <strong>combined</strong> across long, short and both reverses. In June it was split per side, only the long alert got created, and the book ran one-sided for weeks. One condition cannot be half-wired. The cost is that the alert can't tell you the direction — check the <code>EMA</code> row.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Where the signals actually come from</h2>
+  <div class="prose">
+    <p>Every leg is computed on the Mac mini. TradingView's only job in the live path is feeding bars.</p>
+    <p><strong>ORB</strong> — computed in-process by <code>bridge.py::run_orb</code>, with the trend20 bias from <code>scores.json</code> (Databento). <strong>EMA</strong> — <code>ema_signal_local.py</code> writing <code>ema_signal_rth.json</code>, RTH basis since 2026-07-27. <strong>DC</strong> — <code>dc_signal.py</code> from <code>nq_1m.parquet</code>, never had an alert.</p>
+    <p>Each leg also runs behind an automatic trailing-252-day profit-factor gate. A gated-off leg still logs paper trades but takes no live entries, and reopens by itself when its edge returns.</p>
+  </div>
+</section>
+
+<footer>
+  GEKKO MIRROR 150826 · Pine v6 · canonical source <code>PineScripts/gekko_mirror_150826.pine</code><br>
+  Forked from “Gekko ORB + EMA + DC Demo Mirror” v15 on 2026-08-16 — signal logic byte-identical, table reworked.
+</footer>
+
+</div>
