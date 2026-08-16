@@ -18,7 +18,8 @@ import { useEffect, useState } from "react"
 type Check = {
   checked_at: string; state: "live" | "closed" | "stale" | "unknown"
   last_bar: string | null; age_min: number | null
-  market_open: boolean; next_change_at: string | null; stale_after_min: number
+  market_open: boolean; next_change_at: string | null; open_since: string | null
+  stale_after_min: number
 }
 type Data = { current: Check; history: Check[]; transitions: { at: string; from: string; to: string }[]; checks_logged: number }
 
@@ -84,7 +85,15 @@ export default function FeedStatus() {
   const open = boundary && now >= boundary ? !c.market_open : c.market_open
 
   // Re-derive the light from the CURRENT age, not the published verdict.
-  const ageMin = c.last_bar ? (now - new Date(c.last_bar).getTime()) / 60000 : null
+  //
+  // ⚠️ Measure from the later of the last bar and the SESSION OPEN. Across a
+  // closure the last bar is Friday's, so a raw age at Sunday's 18:00 reopen is
+  // ~2,950 minutes and the light would show red every single week while the feed
+  // is perfectly healthy and simply has not had a bar to send yet.
+  const openSince = c.open_since ? new Date(c.open_since).getTime() : null
+  const lastBar = c.last_bar ? new Date(c.last_bar).getTime() : null
+  const ref = lastBar !== null && openSince !== null ? Math.max(lastBar, openSince) : lastBar
+  const ageMin = ref !== null ? (now - ref) / 60000 : null
   const live = open && ageMin !== null && ageMin <= c.stale_after_min
   const stale = open && (ageMin === null || ageMin > c.stale_after_min)
 
