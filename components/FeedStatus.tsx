@@ -33,7 +33,18 @@ const ago = (iso: string | null, now: number): string => {
   return `${Math.floor(m / 1440)}d ago`
 }
 
+// Rendered in the VIEWER's timezone, with the zone named. Market hours are ET and
+// the viewer is usually SGT, so an unlabelled "opens 06:00" reads as ET and is off
+// by twelve hours. Local time is the right default — someone glancing at this wants
+// to know if it is live NOW — but it has to say which clock it is on.
 const stamp = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", {
+    day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+    hour12: false, timeZoneName: "short",
+  })
+
+// Compact form for dense log rows, where the zone is stated once in the header.
+const stampShort = (iso: string) =>
   new Date(iso).toLocaleString("en-GB", {
     day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false,
   })
@@ -128,24 +139,24 @@ export default function FeedStatus() {
               </p>
               {d.transitions.slice().reverse().map((t, i) => (
                 <p key={i} className="text-xs font-mono tabular-nums" style={{ color: "var(--text2)" }}>
-                  {stamp(t.at)} · {t.from} → <b style={{ color: t.to === "live" ? GREEN : t.to === "stale" ? RED : AMBER }}>{t.to}</b>
+                  {stampShort(t.at)} · {t.from} → <b style={{ color: t.to === "live" ? GREEN : t.to === "stale" ? RED : AMBER }}>{t.to}</b>
                 </p>
               ))}
             </div>
           )}
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "var(--muted)" }}>
-              Checks · newest first · {d.checks_logged} recorded
+              Checks · newest first · {d.checks_logged} recorded · all times {Intl.DateTimeFormat().resolvedOptions().timeZone}
             </p>
             <div className="max-h-64 overflow-y-auto">
               {d.history.slice().reverse().map((h, i) => (
                 <div key={i} className="flex gap-3 text-xs font-mono tabular-nums py-0.5"
                      style={{ color: "var(--muted)" }}>
-                  <span style={{ minWidth: 110 }}>{stamp(h.checked_at)}</span>
+                  <span style={{ minWidth: 110 }}>{stampShort(h.checked_at)}</span>
                   <span style={{ minWidth: 56, color: h.state === "live" ? GREEN : h.state === "stale" ? RED : "var(--muted)" }}>
                     {h.state}
                   </span>
-                  <span>last bar {h.last_bar ? stamp(h.last_bar) : "—"}</span>
+                  <span>last bar {h.last_bar ? stampShort(h.last_bar) : "—"}</span>
                 </div>
               ))}
             </div>
