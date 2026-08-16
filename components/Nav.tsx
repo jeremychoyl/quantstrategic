@@ -3,19 +3,22 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
 
-// Front 5 — original operational tabs
+// Front 5 — the tabs worth a click without opening a menu. Kept to five on
+// purpose: this is a single flex row with no wrap, and seven crowded it on a
+// phone. Adding a sixth means demoting one.
 const MAIN = [
   { href: "/",             label: "Overview"   },
   { href: "/details",      label: "Details"    },
   { href: "/expected",     label: "Projection" },
   { href: "/configurator", label: "Strategies" },
   { href: "/tradingview",  label: "TradingView"},
-  { href: "/swing",        label: "Swing"      },
-  { href: "/history",      label: "History"    },
 ]
 
-// Last 5 — analytical / investor deck, under the More ▾ dropdown
+// Everything else, under the More ▾ dropdown. Swing and History moved here
+// 2026-08-16 to get MAIN back to five.
 const MORE = [
+  { href: "/swing",       label: "Swing"       },
+  { href: "/history",     label: "History"     },
   { href: "/factsheet",   label: "Factsheet"   },
   { href: "/performance", label: "Performance" },
   { href: "/analysis",    label: "Analysis"    },
