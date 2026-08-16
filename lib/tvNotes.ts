@@ -49,7 +49,7 @@ export const TV_NOTES: TvNotes = {
       href: "/tv/gekko-levels.html",
       meta: "indicator · reference",
       blurb:
-        "Session reference levels — the ORB bias pair, the EMA opens, and the Donchian line the swing leg reverts from. Which level is in play on a given day, and why it is the one that matters.",
+        "Session reference levels — PDH/PDL built from RTH only (deliberately not the daily bar, which includes Globex), the D CLOSE/SMA20 bias pair that gates ORB, the overnight Globex range, and the session opens. Only the levels actually in play are drawn.",
     },
     {
       title: "GEKKO MIRROR 150826",
