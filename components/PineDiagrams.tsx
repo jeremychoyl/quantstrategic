@@ -151,7 +151,8 @@ function LevelsDiagram() {
           <text x="80" y={l.y + 4} fontSize="10.5" fontWeight="700" fill={l.c} textAnchor="end" style={mono}>
             {l.label}
           </text>
-          {l.note && <text x="410" y={l.y + 4} fontSize="9.5" fill="var(--muted)" style={mono}>{l.note}</text>}
+          {/* x=424 clears the bias-pair bracket at 404-412; at 410 it overlapped the first character */}
+          {l.note && <text x="424" y={l.y + 4} fontSize="9.5" fill="var(--muted)" style={mono}>{l.note}</text>}
         </g>
       ))}
       {/* bias pair bracket */}
