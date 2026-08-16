@@ -138,6 +138,13 @@ export default function FeedStatus() {
         </button>
       </div>
 
+      <p className="text-[11px] leading-relaxed" style={{ color: "var(--muted)" }}>
+        These are the 5-minute price bars the three legs read to decide. <b>ORB depends on every
+        one</b> — the opening range, the break and the stop all come from here. EMA uses them for the
+        intraday continuation of its locally-seeded cross; DC only for its 15:55 exit read. No bars,
+        no decisions.
+      </p>
+
       {showLog && (
         <div className="rounded-xl p-4 flex flex-col gap-3"
              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>

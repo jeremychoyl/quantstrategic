@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import { DashboardData } from "@/lib/types"
 import { fetchDashboard, fmtDate } from "@/lib/data"
 import Nav from "@/components/Nav"
+import FeedStatus from "@/components/FeedStatus"
 import ReturnsHero from "@/components/ReturnsHero"
 import PnLBarClient from "@/components/PnLBarClient"
 import Positions from "@/components/Positions"
@@ -75,6 +76,12 @@ export default function Overview() {
       <Nav generatedAt={data?.generated_at} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 space-y-6">
+        {/* Same component as the TradingView tab, deliberately — one definition of
+            the light, so the two pages can never disagree about whether the feed is
+            up. It fetches independently and renders nothing until it has an answer,
+            so it does not gate the rest of the page. */}
+        <FeedStatus />
+
         {loading && (
           <div className="flex items-center justify-center h-64">
             <div className="text-sm animate-pulse" style={{ color: "var(--muted)" }}>
