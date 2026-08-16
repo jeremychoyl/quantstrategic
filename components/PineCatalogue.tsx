@@ -13,7 +13,8 @@ type Script = {
   first_tracked: string; last_modified: string; has_file: boolean
   status: string; documented_as?: string; divergent?: boolean; also_on?: Also[]
   panel?: number | null; live?: boolean; tv_name?: string; panel_note?: string
-  pine_id?: string | null; in_cloud?: boolean
+  pine_id?: string | null; in_cloud?: boolean; orphaned?: boolean; orphan_note?: string
+  rename_note?: string
   warning?: string; alert_id?: string; alert_pine_version?: string
   script_version?: string; drift?: string
 }
@@ -152,6 +153,7 @@ export default function PineCatalogue() {
         <div key={`w-${s.file}`} className="text-[11px] leading-relaxed rounded-lg p-3"
              style={{ background: "rgba(255,77,109,0.07)", border: "1px solid var(--border)", borderLeft: `3px solid ${DOWN}`, color: "var(--text2)" }}>
           <p><b style={{ color: DOWN }}>{s.tv_name ?? s.name} — live critical.</b> {s.warning}</p>
+          {s.rename_note && <p className="mt-1.5">{s.rename_note}</p>}
           {s.drift && (
             <p className="mt-1.5">
               <b>Alert {s.alert_id} is pinned at v{s.alert_pine_version}, the script is at
@@ -197,7 +199,10 @@ export default function PineCatalogue() {
                     <div className="text-[10px] font-mono" style={{ color: "var(--muted)" }}>
                       {s.file || "no working file"}
                     </div>
-                    {s.in_cloud === false && (
+                    {s.orphaned ? (
+                      <div className="mt-1"><Pill text="orphaned study" color={WARN}
+                            title={s.orphan_note ?? "Live on a pane with no library script behind it"} /></div>
+                    ) : s.in_cloud === false && (
                       <div className="mt-1"><Pill text="not in cloud" color="var(--muted)"
                             title="No TradingView pine_id — local-only or archived, not missing data" /></div>
                     )}
@@ -240,6 +245,10 @@ export default function PineCatalogue() {
         and is fresh on every copy — names are not usable as keys, since duplicate-before-editing leaves
         20 library scripts sharing only 13 titles. <b>Not in cloud</b> means the script has no id because
         it is local-only or archived, which is a state rather than missing data.{" "}
+        <b>Orphaned study</b> means it is running on a pane with no library script behind it — saved
+        once, then deleted from the library while the chart instance stayed attached. So no
+        <span className="font-mono"> pine_id</span> does <i>not</i> mean not deployed: one of these is
+        live right now and cannot be recovered from the library.{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
         and several scripts share one date because that is when the repo itself was created — the
         scripts are older. <b>No working file</b> means the script is recorded in the strategy log but
