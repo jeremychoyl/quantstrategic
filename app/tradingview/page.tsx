@@ -5,6 +5,7 @@ import { TV_NOTES, TvNotes, TvLink, TvGroup } from "@/lib/tvNotes"
 import { fmtDate } from "@/lib/data"
 import PineCatalogue from "@/components/PineCatalogue"
 import TvOutages from "@/components/TvOutages"
+import FeedStatus from "@/components/FeedStatus"
 import PineDiagrams from "@/components/PineDiagrams"
 
 const ACCENT = "#00d4aa", ACCENT2 = "#7c6af7", WARN = "#f59e0b"
@@ -96,6 +97,9 @@ export default function TradingView() {
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }}>
       <Nav generatedAt={undefined} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+
+        {/* the "is it working right now" question, answered before anything else */}
+        <FeedStatus />
 
         <div>
           <p className="text-xs font-mono uppercase tracking-widest" style={{ color: ACCENT }}>
