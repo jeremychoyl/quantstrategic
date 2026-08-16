@@ -22,6 +22,8 @@ type Data = {
   outage_sessions: number; bars_expected: number; bars_lost: number
   bars_lost_pct: number; or_lost_sessions: number; net_effect_usd: number
   material_outages?: number; material_dates?: string[]
+  total_blackouts?: number; blackout_dates?: string[]
+  attribution?: { attributable_to_tradingview: number | null; why_unknown: string; not_a_cause: string }
   outages: Outage[]
 }
 
@@ -71,15 +73,18 @@ export default function TvOutages() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-black tracking-tight">TradingView feed outages</h2>
+        <h2 className="text-lg font-black tracking-tight">Feed gaps</h2>
         <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
-          Gaps in the 5-minute bars the webhook delivered, across {d.sessions_assessed} sessions
+          Holes in the 5-minute bar stream, across {d.sessions_assessed} sessions
           ({fmtDate(d.first_session)} → {fmtDate(d.last_session)}). Half-days are calendar-corrected,
           so a shortened session is not counted as an outage.
         </p>
       </div>
 
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-5">
+        <Tile n={d.total_blackouts ?? 0} label="total blackouts"
+              color={(d.total_blackouts ?? 0) ? DOWN : ACCENT}
+              note="sessions with no bars at all" />
         <Tile n={d.outage_sessions} label="sessions with gaps"
               color={d.outage_sessions ? WARN : ACCENT}
               note={`of ${d.sessions_assessed} assessed`} />
@@ -96,6 +101,16 @@ export default function TvOutages() {
                 : `across ${material ?? 0} sessions that moved money`} />
       </div>
 
+      {d.attribution && (
+        <p className="text-[11px] leading-relaxed rounded-lg p-3"
+           style={{ background: "rgba(245,158,11,0.06)", border: "1px solid var(--border)", borderLeft: `3px solid ${WARN}`, color: "var(--text2)" }}>
+          <b>These are gaps, not confirmed TradingView outages.</b> A hole in the bar stream can be
+          TradingView not sending, the tunnel down, the webhook receiver restarting, or an alert
+          paused — and only the first is an outage. Telling them apart needs each alert&apos;s
+          last-fired time, which is visible only from the Windows machine. One thing it is
+          <i> not</i>: the Windows PC being off. Alerts fire server-side.
+        </p>
+      )}
       <p className="text-[11px] leading-relaxed rounded-lg p-3"
          style={{ background: "rgba(0,212,170,0.05)", border: "1px solid var(--border)", borderLeft: `3px solid ${ACCENT}`, color: "var(--text2)" }}>
         <b>Frequency and cost disagree here, and cost is the one that counts.</b> The feed drops bars
