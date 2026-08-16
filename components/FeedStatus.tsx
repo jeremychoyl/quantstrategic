@@ -84,22 +84,40 @@ export default function FeedStatus() {
   const boundary = c.next_change_at ? new Date(c.next_change_at).getTime() : null
   const open = boundary && now >= boundary ? !c.market_open : c.market_open
 
-  // Re-derive the light from the CURRENT age, not the published verdict.
+  // ⚠️ TWO DIFFERENT AGES, AND CONFLATING THEM SHOWED A FALSE RED.
   //
-  // ⚠️ Measure from the later of the last bar and the SESSION OPEN. Across a
-  // closure the last bar is Friday's, so a raw age at Sunday's 18:00 reopen is
-  // ~2,950 minutes and the light would show red every single week while the feed
-  // is perfectly healthy and simply has not had a bar to send yet.
+  //   FEED age    = checked_at - last_bar   what the Mac SAW. Authoritative about
+  //                                         the feed, and immune to this page's lag.
+  //   PAYLOAD age = now - checked_at        how stale THIS PAGE's copy is. Says
+  //                                         nothing about the feed.
+  //
+  // The first version used now - last_bar, which silently adds the publisher lag to
+  // the bar age. On 2026-08-16 the route served a 23-minute-old payload and the light
+  // reported NO BARS while bars were arriving on a clean 5-minute cadence.
+  //
+  // The original property survives: this still cannot show a false GREEN, because a
+  // dead publisher grows the PAYLOAD age and the light stops claiming to know.
+  //
+  // Measured from the later of the last bar and the SESSION OPEN — across a closure
+  // the last bar is Friday's, so a raw age at Sunday's reopen is ~2,950 minutes.
   const openSince = c.open_since ? new Date(c.open_since).getTime() : null
   const lastBar = c.last_bar ? new Date(c.last_bar).getTime() : null
+  const checkedAt = new Date(c.checked_at).getTime()
   const ref = lastBar !== null && openSince !== null ? Math.max(lastBar, openSince) : lastBar
-  const ageMin = ref !== null ? (now - ref) / 60000 : null
+  const ageMin = ref !== null ? (checkedAt - ref) / 60000 : null
+  const payloadMin = (now - checkedAt) / 60000
+  // Beyond this the page cannot honestly speak for the feed: it is two publish
+  // cycles plus the fetch interval, so it only trips when publishing has stopped.
+  const PAYLOAD_STALE = 12
+  const unheard = payloadMin > PAYLOAD_STALE
   const live = open && ageMin !== null && ageMin <= c.stale_after_min
   const stale = open && (ageMin === null || ageMin > c.stale_after_min)
 
-  const label = !open ? "MARKET CLOSED" : live ? "LIVE" : "NO BARS"
-  const colour = !open ? GREY : live ? GREEN : RED
-  const sub = !open
+  const label = unheard ? "STATUS UNKNOWN" : !open ? "MARKET CLOSED" : live ? "LIVE" : "NO BARS"
+  const colour = unheard ? AMBER : !open ? GREY : live ? GREEN : RED
+  const sub = unheard
+    ? `No update from the monitor for ${Math.floor(payloadMin)} min, so this page cannot speak for the feed. Last it knew: ${live ? "bars arriving" : "no bars"}, last bar ${ago(c.last_bar, now)}`
+    : !open
     ? `Feed silent as expected. Last bar ${ago(c.last_bar, now)}${boundary ? ` · opens ${stamp(c.next_change_at!)}` : ""}`
     : live
     ? `Bars arriving. Last bar ${ago(c.last_bar, now)}`
@@ -111,7 +129,7 @@ export default function FeedStatus() {
            style={{ background: "var(--surface)", border: "1px solid var(--border)",
                     borderLeft: `4px solid ${colour}` }}>
         <span className="relative flex items-center justify-center" style={{ width: 14, height: 14 }}>
-          {live && (
+          {live && !unheard && (
             <span className="absolute animate-ping rounded-full"
                   style={{ width: 14, height: 14, background: GREEN, opacity: 0.45 }} />
           )}
