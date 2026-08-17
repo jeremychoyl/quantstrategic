@@ -227,6 +227,20 @@ export default function PineCatalogue() {
                       <div className="mt-1"><Pill text="not in cloud" color="var(--muted)"
                             title="No TradingView pine_id — local-only or archived, not missing data" /></div>
                     )}
+                    {/* Windows owns these values (only it can see the chart layout); this side
+                        renders them VERBATIM and does not parse them for meaning. 10 rows carry
+                        one and all were invisible until 2026-08-18 — including "LIVE CRITICAL:
+                        feeds bars.jsonl" and the MNQ ORB exclusion, where a blank link column
+                        read as a gap to fill rather than a file that must never be committed.
+                        A note needing more force belongs in `warning`, which already renders as
+                        a banner above the table — that choice is Windows', not a keyword match
+                        here. Width-capped so one long note cannot stretch the column. */}
+                    {s.panel_note && (
+                      <div className="mt-1 text-[10px] leading-snug max-w-[26rem]"
+                           style={{ color: "var(--muted)" }}>
+                        {s.panel_note}
+                      </div>
+                    )}
                     {s.divergent && s.also_on?.[0] && (
                       <div className="mt-1">
                         <Pill text="diverged" color={WARN}
