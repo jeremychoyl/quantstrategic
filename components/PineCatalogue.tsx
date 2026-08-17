@@ -200,12 +200,21 @@ export default function PineCatalogue() {
                         TradingView's name and the link is a file in a repo, so the
                         filename is the thing that actually corresponds. Only 19 of 31
                         rows carry a URL — the rest have no source in that repo. */}
+                    {/* ⚠️ Underline + an explicit ↗, NOT colour alone. The first version
+                        cued the link only by tinting a 10px monospace filename teal, and
+                        the owner reported seeing no link at all on a page that was
+                        rendering them correctly — at that size a hue shift is not a
+                        visible affordance, and colour-only also fails anyone who cannot
+                        separate the two hues. The larger tap target matters on a phone. */}
                     <div className="text-[10px] font-mono" style={{ color: "var(--muted)" }}>
                       {s.github_url ? (
                         <a href={s.github_url} target="_blank" rel="noopener noreferrer"
-                           title="Source in the PineScripts repo — private, so opening it needs repo access"
-                           className="hover:underline" style={{ color: ACCENT }}>
+                           title="Open the source in the PineScripts repo — private, so it needs repo access"
+                           className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 py-0.5"
+                           style={{ color: ACCENT, textDecorationColor: ACCENT }}>
                           {s.file}
+                          <span aria-hidden="true" className="not-italic">↗</span>
+                          <span className="sr-only"> (opens source in a new tab)</span>
                         </a>
                       ) : (
                         s.file || "no working file"
@@ -261,8 +270,8 @@ export default function PineCatalogue() {
         once, then deleted from the library while the chart instance stayed attached. So no
         <span className="font-mono"> pine_id</span> does <i>not</i> mean not deployed: one of these is
         live right now and cannot be recovered from the library.{" "}
-        <b>A filename in teal links to its source</b> in the PineScripts repo, which is private — the
-        link needs repo access to open, and a filename in plain grey has no source there at all
+        <b>An underlined filename marked ↗ links to its source</b> in the PineScripts repo, which is
+        private — the link needs repo access to open, and a plain filename has no source there at all
         (local to one machine, or deleted).{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
         and several scripts share one date because that is when the repo itself was created — the
