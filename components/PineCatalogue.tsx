@@ -14,7 +14,7 @@ type Script = {
   status: string; documented_as?: string; divergent?: boolean; also_on?: Also[]
   panel?: number | null; live?: boolean; tv_name?: string; panel_note?: string
   pine_id?: string | null; in_cloud?: boolean; orphaned?: boolean; orphan_note?: string
-  rename_note?: string
+  rename_note?: string; github_url?: string
   warning?: string; alert_id?: string; alert_pine_version?: string
   script_version?: string; drift?: string
 }
@@ -196,8 +196,20 @@ export default function PineCatalogue() {
                 <tr key={`${s.name}-${i}`} style={{ borderBottom: "1px solid var(--border)" }}>
                   <td className="px-3 py-2">
                     <div className="font-semibold" style={{ color: "var(--text)" }}>{s.tv_name ?? s.name}</div>
+                    {/* The filename links to its source, not the title: the title is
+                        TradingView's name and the link is a file in a repo, so the
+                        filename is the thing that actually corresponds. Only 19 of 31
+                        rows carry a URL — the rest have no source in that repo. */}
                     <div className="text-[10px] font-mono" style={{ color: "var(--muted)" }}>
-                      {s.file || "no working file"}
+                      {s.github_url ? (
+                        <a href={s.github_url} target="_blank" rel="noopener noreferrer"
+                           title="Source in the PineScripts repo — private, so opening it needs repo access"
+                           className="hover:underline" style={{ color: ACCENT }}>
+                          {s.file}
+                        </a>
+                      ) : (
+                        s.file || "no working file"
+                      )}
                     </div>
                     {s.orphaned ? (
                       <div className="mt-1"><Pill text="orphaned study" color={WARN}
@@ -249,6 +261,9 @@ export default function PineCatalogue() {
         once, then deleted from the library while the chart instance stayed attached. So no
         <span className="font-mono"> pine_id</span> does <i>not</i> mean not deployed: one of these is
         live right now and cannot be recovered from the library.{" "}
+        <b>A filename in teal links to its source</b> in the PineScripts repo, which is private — the
+        link needs repo access to open, and a filename in plain grey has no source there at all
+        (local to one machine, or deleted).{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
         and several scripts share one date because that is when the repo itself was created — the
         scripts are older. <b>No working file</b> means the script is recorded in the strategy log but
