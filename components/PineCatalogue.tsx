@@ -149,10 +149,16 @@ export default function PineCatalogue() {
           Rendered above the table because the Data Feed one is a delete-this-and-
           the-bar-feed-dies trap, and it is counter-intuitive in the dangerous
           direction: the reassuring name is on the inert script. */}
+      {/* ⚠️ The label was hardcoded "— live critical." — written when the Data Feed was the only
+          warning, and FALSE the moment a second arrived: MNQ ORB is retired, and its warning is
+          "never commit this", not "don't delete this". The name is emphasised and the warning
+          speaks for itself, so the banner cannot assert a severity the value never claimed.
+          Keyed on name rather than file: a warning row need not have a working file, which is
+          exactly the MNQ ORB case. */}
       {cat.scripts.filter(s => s.warning).map(s => (
-        <div key={`w-${s.file}`} className="text-[11px] leading-relaxed rounded-lg p-3"
+        <div key={`w-${s.tv_name ?? s.name}`} className="text-[11px] leading-relaxed rounded-lg p-3"
              style={{ background: "rgba(255,77,109,0.07)", border: "1px solid var(--border)", borderLeft: `3px solid ${DOWN}`, color: "var(--text2)" }}>
-          <p><b style={{ color: DOWN }}>{s.tv_name ?? s.name} — live critical.</b> {s.warning}</p>
+          <p><b style={{ color: DOWN }}>{s.tv_name ?? s.name}</b> {s.warning}</p>
           {s.rename_note && <p className="mt-1.5">{s.rename_note}</p>}
           {s.drift && (
             <p className="mt-1.5">
