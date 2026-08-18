@@ -107,8 +107,8 @@ export default function TradingView() {
           </p>
           <h1 className="text-2xl font-black mt-1">What the charts are for</h1>
           <p className="text-sm mt-2 leading-relaxed" style={{ color: "var(--text2)" }}>
-            Reference documents for the two TradingView indicators, and the takeaways from the
-            Pine-side research. <b style={{ color: "var(--text)" }}>Neither indicator places orders</b> —
+            Reference documents for the two TradingView indicators, and every Pine script across
+            both machines. <b style={{ color: "var(--text)" }}>Neither indicator places orders</b> —
             since 2026-07-01 every signal is computed on the Mac mini by <code className="font-mono text-xs">bridge.py</code>,
             which sends to Tradovate direct. TradingView&apos;s remaining live job is feeding bars.
           </p>
@@ -164,22 +164,12 @@ export default function TradingView() {
         {/* every Pine script across both machines */}
         <PineCatalogue />
 
-        {/* takeaways */}
-        <div>
-          <h2 className="text-lg font-black tracking-tight">Takeaways from the TradingView work</h2>
-          <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>
-            Canonical copy in <code className="font-mono">{notes.source}</code> · reflects work through{" "}
-            {fmtDate(notes.updated)}
-          </p>
-        </div>
-
-        {notes.groups.map((g, i) => <Group key={g.title} group={g} n={i + 1} />)}
-
-        <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>
-          These are reference and research notes, not live state — they describe how the indicators work
-          and what the Pine-side tests returned, not what the chart says right now. For live position and
-          gate state see Overview and Details.
-        </p>
+        {/* The "Takeaways from the TradingView work" section was removed on 2026-08-18
+            at the owner's request. The notes themselves are NOT deleted — they remain
+            in lib/tvNotes.ts, in PineScripts/docs/tradingview_notes.json and in git,
+            and /api/tradingview still serves them. Only the rendering is gone, so
+            restoring the section is putting this block back rather than rewriting
+            content. */}
 
       </main>
     </div>
