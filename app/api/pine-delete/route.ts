@@ -18,9 +18,15 @@ export async function POST(req: Request) {
   const url = process.env.GEKKO_WEBHOOK_URL
   const secret = process.env.GEKKO_WEBHOOK_SECRET
   if (!url || !secret) {
-    // Deliberately explicit: without this the button fails silently and looks broken.
+    /* Name WHICH variable is absent. The first version said "one of these two is
+       missing", which turned a 10-second fix into a guess — and the guess was
+       wrong, costing a whole deploy cycle. Variable NAMES are not secret; their
+       values are, and those are never read here beyond a presence check. */
+    const missing = [!url && "GEKKO_WEBHOOK_URL", !secret && "GEKKO_WEBHOOK_SECRET"]
+      .filter(Boolean).join(" and ")
     return NextResponse.json(
-      { ok: false, error: "not configured — GEKKO_WEBHOOK_URL / GEKKO_WEBHOOK_SECRET missing" },
+      { ok: false, error: `not configured — ${missing} not visible to this deployment`,
+        hint: "set it for the Production environment, then redeploy" },
       { status: 503 },
     )
   }
