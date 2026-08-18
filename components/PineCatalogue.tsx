@@ -14,7 +14,7 @@ type Script = {
   status: string; documented_as?: string; divergent?: boolean; also_on?: Also[]
   panel?: number | null; live?: boolean; tv_name?: string; panel_note?: string
   pine_id?: string | null; in_cloud?: boolean; orphaned?: boolean; orphan_note?: string
-  rename_note?: string; github_url?: string
+  rename_note?: string; github_url?: string; cloud_state?: string
   warning?: string; alert_id?: string; alert_pine_version?: string
   script_version?: string; drift?: string
 }
@@ -53,6 +53,29 @@ const STATUS: Record<string, { c: string; label: string }> = {
    field would break that; renaming the label costs nothing. */
 const HOME: Record<string, string> = { win: "shared", mac: "Mac-only" }
 const home = (m?: string) => (m ? HOME[m] ?? m : "—")
+
+/* Every row that was not in the TradingView library used to show one "not in cloud"
+   pill, which collapsed four unrelated situations into one. A script one paste away
+   from working looked identical to one whose source no longer exists anywhere — and
+   which of those it is was the actual question being asked of this page.
+
+   `cloud_state` is derived on the Mac (pine_inventory) from Windows' free-text
+   `cloud_status`, so the renderer shows a state rather than interpreting prose. The
+   tooltip answers the only thing that matters: can I get this back?
+
+   in_cloud and mac_local get NO pill on purpose. in_cloud is the normal case, and
+   mac_local is already stated by the Home column — a pill on 17 of 26 rows is noise
+   that would bury the four that carry information. */
+const CLOUD: Record<string, { label: string; color: string; title: string }> = {
+  never_uploaded: { label: "never uploaded", color: ACCENT2,
+    title: "The source is here but was never put into TradingView. Recoverable: paste it in as a new script." },
+  deleted_from_tv: { label: "deleted from TV", color: DOWN,
+    title: "Removed from the TradingView library. The source survives in the repo, so it can be pasted back." },
+  superseded: { label: "superseded", color: "var(--muted)",
+    title: "Replaced in place by a newer version, which is also listed here." },
+  cloud_only: { label: "cloud only", color: WARN,
+    title: "Exists in TradingView but there is no local source — nothing to view or archive on this side." },
+}
 
 function Pill({ text, color, title }: { text: string; color: string; title?: string }) {
   return (
@@ -243,10 +266,13 @@ export default function PineCatalogue() {
                     {s.orphaned ? (
                       <div className="mt-1"><Pill text="orphaned study" color={WARN}
                             title={s.orphan_note ?? "Live on a pane with no library script behind it"} /></div>
-                    ) : s.in_cloud === false && (
-                      <div className="mt-1"><Pill text="not in cloud" color="var(--muted)"
-                            title="No TradingView pine_id — local-only or archived, not missing data" /></div>
-                    )}
+                    ) : s.cloud_state && CLOUD[s.cloud_state] ? (
+                      <div className="mt-1">
+                        <Pill text={CLOUD[s.cloud_state].label}
+                              color={CLOUD[s.cloud_state].color}
+                              title={CLOUD[s.cloud_state].title} />
+                      </div>
+                    ) : null}
                     {/* Windows owns these values (only it can see the chart layout); this side
                         renders them VERBATIM and does not parse them for meaning. 10 rows carry
                         one and all were invisible until 2026-08-18 — including "LIVE CRITICAL:
@@ -298,8 +324,11 @@ export default function PineCatalogue() {
         <b>Panel data is a snapshot{cat.as_of ? ` taken ${fmtDate(cat.as_of.slice(0, 10))}` : ""}, not live.</b>{" "}
         Rows keyed on TradingView&apos;s <span className="font-mono">pine_id</span>, which survives renames
         and is fresh on every copy — names are not usable as keys, since duplicate-before-editing leaves
-        20 library scripts sharing only 13 titles. <b>Not in cloud</b> means the script has no id because
-        it is local-only or archived, which is a state rather than missing data.{" "}
+        20 library scripts sharing only 13 titles. The pill on a row says what happened to it in TradingView, and the tooltip says
+        whether it can be recovered: <b>never uploaded</b> and <b>deleted from TV</b> both still
+        have their source here and paste back; <b>cloud only</b> does not, so there is nothing on
+        this side to view. Rows with no pill are either in the library normally or Mac-only,
+        which the Home column already states.{" "}
         <b>Orphaned study</b> means it is running on a pane with no library script behind it — saved
         once, then deleted from the library while the chart instance stayed attached. So no
         <span className="font-mono"> pine_id</span> does <i>not</i> mean not deployed: one of these is
