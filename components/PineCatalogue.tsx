@@ -149,6 +149,12 @@ export default function PineCatalogue() {
      publish. A button that hid the row optimistically would be claiming an
      authority this page does not have. */
   const [asked, setAsked] = useState<Record<string, string>>({})
+  /* Names the Mac already has hidden. The published table lags by up to 5 minutes,
+     so without this an approved row sits there looking untouched and the approval
+     reads as having failed. Marked in place rather than removed: seeing it struck
+     through and labelled is the confirmation — a row that simply vanished would be
+     indistinguishable from one that was never there. */
+  const [pendingGone, setPendingGone] = useState<Set<string>>(new Set())
 
   const requestDelete = async (name: string) => {
     setAsked(a => ({ ...a, [name]: "asking" }))
@@ -196,8 +202,14 @@ export default function PineCatalogue() {
         })
         .catch(() => { if (alive && first) setState("absent") })
 
-    load(true)
-    const id = setInterval(() => load(false), 20_000)
+    const loadHidden = () =>
+      fetch("/api/pine-hidden", { cache: "no-store" })
+        .then(r => r.json())
+        .then(j => { if (alive && Array.isArray(j?.hidden)) setPendingGone(new Set(j.hidden)) })
+        .catch(() => {})   // best effort: failing here must only mean "mark nothing"
+
+    load(true); loadHidden()
+    const id = setInterval(() => { load(false); loadHidden() }, 20_000)
     return () => { alive = false; clearInterval(id) }
   }, [])
 
@@ -350,10 +362,17 @@ export default function PineCatalogue() {
           <tbody>
             {rows.map((s, i) => {
               const st = STATUS[s.live ? "live" : s.status] ?? STATUS.undocumented
+              const gone = pendingGone.has(s.tv_name ?? s.name)
               return (
                 <tr key={`${s.name}-${i}`} style={{ borderBottom: "1px solid var(--border)" }}>
                   <td className="px-3 py-2">
-                    <div className="font-semibold" style={{ color: "var(--text)" }}>{s.tv_name ?? s.name}</div>
+                    <div className="font-semibold flex items-center gap-2"
+                         style={{ color: gone ? "var(--muted)" : "var(--text)",
+                                  textDecoration: gone ? "line-through" : undefined }}>
+                      {s.tv_name ?? s.name}
+                      {gone && <Pill text="removed" color={DOWN}
+                                     title="Approved in Telegram. It disappears from this table at the next publish, within about 5 minutes." />}
+                    </div>
                     {/* The filename links to its source, not the title: the title is
                         TradingView's name and the link is a file in a repo, so the
                         filename is the thing that actually corresponds. Only 19 of 31
@@ -431,6 +450,7 @@ export default function PineCatalogue() {
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     {(() => {
                       const name = s.tv_name ?? s.name
+                      if (gone) return <span className="text-[10px]" style={{ color: DOWN }}>removed</span>
                       const st = asked[name]
                       if (st === "sent") return <span className="text-[10px]" style={{ color: ACCENT }}>check Telegram</span>
                       if (st === "asking") return <span className="text-[10px]" style={{ color: "var(--muted)" }}>asking…</span>
@@ -468,6 +488,7 @@ export default function PineCatalogue() {
         <b>An underlined filename marked ↗ links to its source</b> in the PineScripts repo, which is
         private — the link needs repo access to open, and a plain filename has no source there at all
         (local to one machine, or deleted).{" "}
+        <b>A row struck through and marked <span style={{ color: "#ff4d6d" }}>removed</span></b> has been approved in Telegram and is waiting for the next publish to drop out — usually within five minutes. It is marked rather than hidden on the spot, because a row that simply vanished would be indistinguishable from one that was never there.{" "}
         <b>This table refreshes itself every 20 seconds</b>, so a removal you approve in Telegram disappears on its own — though the underlying file is only republished every 5 minutes, so give it a few minutes. Your sort and filter are kept when it updates.{" "}
         <b>Remove asks, it does not act.</b> It sends a request to Telegram and the row stays until you approve it there and the next publish runs — this page has no login, so it cannot be allowed to remove anything on its own. Nothing is deleted either way: the row is hidden, the file is untouched, and TradingView is unchanged.{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
