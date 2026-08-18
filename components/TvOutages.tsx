@@ -183,7 +183,7 @@ export default function TvOutages() {
 
       {d.outages.length > 5 && (
         <button onClick={() => setShowAll(s => !s)}
-                className="self-start px-3 py-1.5 rounded text-xs font-semibold"
+                className="self-start px-3 py-1.5 rounded text-xs font-semibold min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                 style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text2)" }}>
           {showAll ? "Show fewer" : `Show all ${d.outages.length}`}
         </button>
