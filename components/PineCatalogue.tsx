@@ -170,6 +170,30 @@ export default function PineCatalogue() {
   // Poll hard for a minute after a request, then settle. An idle page left open
   // on a second screen should not chatter every 3 seconds indefinitely.
   const fastUntil = useRef(0)
+  /* Rows ticked for a bulk request. One approval covers the batch — ten separate
+     prompts is how someone ends up tapping Yes without reading them, which is the
+     exact failure the confirmation exists to prevent. */
+  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const toggle = (n: string) =>
+    setPicked(p => { const q = new Set(p); q.has(n) ? q.delete(n) : q.add(n); return q })
+
+  const requestBulk = async () => {
+    const names = [...picked]
+    if (!names.length) return
+    fastUntil.current = Date.now() + 60_000
+    setAsked(a => ({ ...a, ...Object.fromEntries(names.map(n => [n, "asking"])) }))
+    try {
+      const r = await fetch("/api/pine-delete", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scripts: names }),
+      })
+      const j = await r.json().catch(() => ({}))
+      setAsked(a => ({ ...a, ...Object.fromEntries(names.map(n => [n, r.ok ? "sent" : (j?.error || "failed")])) }))
+      if (r.ok) setPicked(new Set())
+    } catch {
+      setAsked(a => ({ ...a, ...Object.fromEntries(names.map(n => [n, "failed"])) }))
+    }
+  }
 
   const requestDelete = async (name: string) => {
     fastUntil.current = Date.now() + 60_000     // approval usually lands within seconds
@@ -384,10 +408,32 @@ export default function PineCatalogue() {
         ))}
       </div>
 
+      {picked.size > 0 && (
+        <div className="flex items-center gap-3 rounded-lg p-3 text-xs"
+             style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+          <span style={{ color: "var(--text2)" }}>
+            <b>{picked.size}</b> selected
+          </span>
+          <button type="button" onClick={requestBulk}
+                  className="px-2.5 py-1 rounded font-semibold"
+                  style={{ color: DOWN, border: `1px solid ${DOWN}` }}>
+            Request removal of {picked.size}
+          </button>
+          <button type="button" onClick={() => setPicked(new Set())}
+                  className="px-2 py-1 rounded" style={{ color: "var(--muted)" }}>
+            Clear
+          </button>
+          <span style={{ color: "var(--muted)" }}>
+            One Telegram message, one approval for all of them.
+          </span>
+        </div>
+      )}
+
       <div className="rounded-xl overflow-x-auto" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ color: "var(--muted)" }}>
+              <th className="px-2 py-2" style={{ borderBottom: "1px solid var(--border)" }} />
               {COLS.map((col, i) => {
                 const active = sortKey === col.key
                 return (
@@ -420,6 +466,14 @@ export default function PineCatalogue() {
               const gone = pendingGone.has(s.tv_name ?? s.name)
               return (
                 <tr key={`${s.name}-${i}`} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td className="px-2 py-2 align-top">
+                    {/* No tick on a row already gone — it cannot be requested again. */}
+                    {!gone && (
+                      <input type="checkbox" aria-label={`Select ${s.tv_name ?? s.name}`}
+                             checked={picked.has(s.tv_name ?? s.name)}
+                             onChange={() => toggle(s.tv_name ?? s.name)} />
+                    )}
+                  </td>
                   <td className="px-3 py-2">
                     <div className="font-semibold flex items-center gap-2"
                          style={{ color: gone ? "var(--muted)" : "var(--text)",
@@ -543,7 +597,7 @@ export default function PineCatalogue() {
         <b>An underlined filename marked ↗ links to its source</b> in the PineScripts repo, which is
         private — the link needs repo access to open, and a plain filename has no source there at all
         (local to one machine, or deleted).{" "}
-        <b>Approve in Telegram and the row goes within a few seconds</b> — struck through and marked <span style={{ color: "#ff4d6d" }}>removed</span> first, so you can see the tap landed, then dropped from the table. It does not wait for the underlying file, which catches up separately.{" "}
+        <b>Tick several rows</b> to request them together — one Telegram message listing all of them and one approval, rather than a prompt per script. {" "}<b>Approve in Telegram and the row goes within a few seconds</b> — struck through and marked <span style={{ color: "#ff4d6d" }}>removed</span> first, so you can see the tap landed, then dropped from the table. It does not wait for the underlying file, which catches up separately.{" "}
         <b>This table refreshes itself every 20 seconds</b>, so a removal you approve in Telegram disappears on its own — though the underlying file is only republished every 5 minutes, so give it a few minutes. Your sort and filter are kept when it updates.{" "}
         <b>Remove asks, it does not act.</b> It sends a request to Telegram and the row stays until you approve it there and the next publish runs — this page has no login, so it cannot be allowed to remove anything on its own. Nothing is deleted either way: the row is hidden, the file is untouched, and TradingView is unchanged.{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
