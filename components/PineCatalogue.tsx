@@ -14,7 +14,7 @@ type Script = {
   status: string; documented_as?: string; divergent?: boolean; also_on?: Also[]
   panel?: number | null; live?: boolean; tv_name?: string; panel_note?: string
   pine_id?: string | null; in_cloud?: boolean; orphaned?: boolean; orphan_note?: string
-  rename_note?: string; github_url?: string; cloud_state?: string
+  rename_note?: string; github_url?: string; docs_url?: string; cloud_state?: string
   warning?: string; alert_id?: string; alert_pine_version?: string
   script_version?: string; drift?: string
 }
@@ -500,7 +500,8 @@ export default function PineCatalogue() {
                         rendering them correctly — at that size a hue shift is not a
                         visible affordance, and colour-only also fails anyone who cannot
                         separate the two hues. The larger tap target matters on a phone. */}
-                    <div className="text-[10px] font-mono" style={{ color: "var(--muted)" }}>
+                    <div className="text-[10px] font-mono flex flex-wrap items-center gap-x-3"
+                         style={{ color: "var(--muted)" }}>
                       {s.github_url ? (
                         <a href={s.github_url} target="_blank" rel="noopener noreferrer"
                            title="Open the source in the PineScripts repo — private, so it needs repo access"
@@ -513,6 +514,33 @@ export default function PineCatalogue() {
                       ) : (
                         s.file || "no working file"
                       )}
+                      {/* The illustrated reference page, when one exists — 2 of 31 rows.
+                          Sits beside the source link because they are the same kind of
+                          thing about the same script: source, and the page explaining it.
+                          Windows owns the value (`docs_url` in pine_panels.json); this
+                          side only renders it and MUST NOT invent or backfill one.
+
+                          Truthiness, not just presence: the field is absent on the other
+                          29 rows, and an empty string arriving would otherwise render a
+                          link to nowhere — which is the failure this whole row is trying
+                          to avoid.
+
+                          ⚠️ Labelled "reference (owner)" deliberately. Published Claude
+                          artifacts are PRIVATE to the owner's account unless explicitly
+                          shared, so this opens for the owner and 404s for anyone else.
+                          Same treatment as the private-repo link above: say whose access
+                          it needs rather than implying a page anyone can read. If the
+                          artifacts are later shared, drop the "(owner)" and this comment. */}
+                      {s.docs_url ? (
+                        <a href={s.docs_url} target="_blank" rel="noopener noreferrer"
+                           title="Illustrated reference page for this script — a published Claude artifact, private to the owner's account unless it has been shared"
+                           className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 py-0.5 min-h-11 sm:min-h-0"
+                           style={{ color: ACCENT2, textDecorationColor: ACCENT2 }}>
+                          reference (owner)
+                          <span aria-hidden="true" className="not-italic">↗</span>
+                          <span className="sr-only"> (opens the reference page in a new tab)</span>
+                        </a>
+                      ) : null}
                     </div>
                     {s.orphaned ? (
                       <div className="mt-1"><Pill text="orphaned study" color={WARN}
