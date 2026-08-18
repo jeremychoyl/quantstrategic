@@ -165,17 +165,40 @@ export default function PineCatalogue() {
     }
   }
 
+  /* Polls, so an approval in Telegram lands here on its own. The page cannot be
+     told when you tap Yes — there is no channel from Telegram to a browser — so it
+     asks instead. The upstream file is republished at most every 5 minutes, so a
+     20s poll is well inside that and still cheap.
+
+     ⚠️ It re-renders only when `published_at` CHANGES. Replacing state on every
+     poll would reset the sort, the filter and the per-row "check Telegram" markers
+     four times a minute while you are reading the table. */
   useEffect(() => {
     let alive = true
-    fetch(`/api/pine-catalogue?t=${Date.now()}`)
-      .then(r => r.json())
-      .then(j => {
-        if (!alive) return
-        if (j?.published && j.data?.scripts?.length) { setCat(j.data); setState("ok") }
-        else setState("absent")
-      })
-      .catch(() => { if (alive) setState("absent") })
-    return () => { alive = false }
+    let stamp = ""
+    const load = (first: boolean) =>
+      fetch(`/api/pine-catalogue?t=${Date.now()}`, { cache: "no-store" })
+        .then(r => r.json())
+        .then(j => {
+          if (!alive) return
+          if (j?.published && j.data?.scripts?.length) {
+            const at = String(j.data.published_at ?? "")
+            if (first || at !== stamp) {
+              stamp = at
+              setCat(j.data)
+              // A row that has gone stops showing "check Telegram" — the marker has
+              // done its job and leaving it would claim a request is still pending.
+              const live = new Set(j.data.scripts.map((s: Script) => s.tv_name ?? s.name))
+              setAsked(a => Object.fromEntries(Object.entries(a).filter(([k]) => live.has(k))))
+            }
+            setState("ok")
+          } else if (first) setState("absent")
+        })
+        .catch(() => { if (alive && first) setState("absent") })
+
+    load(true)
+    const id = setInterval(() => load(false), 20_000)
+    return () => { alive = false; clearInterval(id) }
   }, [])
 
   const rows = useMemo(() => {
@@ -445,6 +468,7 @@ export default function PineCatalogue() {
         <b>An underlined filename marked ↗ links to its source</b> in the PineScripts repo, which is
         private — the link needs repo access to open, and a plain filename has no source there at all
         (local to one machine, or deleted).{" "}
+        <b>This table refreshes itself every 20 seconds</b>, so a removal you approve in Telegram disappears on its own — though the underlying file is only republished every 5 minutes, so give it a few minutes. Your sort and filter are kept when it updates.{" "}
         <b>Remove asks, it does not act.</b> It sends a request to Telegram and the row stays until you approve it there and the next publish runs — this page has no login, so it cannot be allowed to remove anything on its own. Nothing is deleted either way: the row is hidden, the file is untouched, and TradingView is unchanged.{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
         and several scripts share one date because that is when the repo itself was created — the
