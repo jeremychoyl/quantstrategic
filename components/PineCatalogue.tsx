@@ -15,6 +15,8 @@ type Script = {
   panel?: number | null; live?: boolean; tv_name?: string; panel_note?: string
   pine_id?: string | null; in_cloud?: boolean; orphaned?: boolean; orphan_note?: string
   rename_note?: string; github_url?: string; docs_url?: string; cloud_state?: string
+  repo_commit?: string; cloud_commit?: string; cloud_as_of?: string
+  sync_state?: string; commits_behind?: number
   warning?: string; alert_id?: string; alert_pine_version?: string
   script_version?: string; drift?: string
 }
@@ -542,6 +544,32 @@ export default function PineCatalogue() {
                         </a>
                       ) : null}
                     </div>
+                    {/* Repo-vs-TradingView sync. Windows confirms what is actually
+                        compiled in the cloud; this renders the gap.
+
+                        THREE states, not two — binary same/differ hides the worst
+                        one. `unverified` means nobody has confirmed what the cloud
+                        copy contains, which is NOT the same as in-sync and must not
+                        look like it. The Mac derives the state in pine_inventory;
+                        this only picks a colour and a sentence.
+
+                        `synced` renders nothing on purpose: a green tick on 26 rows
+                        is noise that trains you to stop reading the row. */}
+                    {s.sync_state === "drift" && (
+                      <div className="text-[10px] mt-1" style={{ color: WARN }}>
+                        <b>TradingView is behind the repo</b>
+                        {typeof s.commits_behind === "number" &&
+                          ` by ${s.commits_behind} commit${s.commits_behind === 1 ? "" : "s"}`}
+                        {" — "}repo <code>{s.repo_commit}</code>, chart <code>{s.cloud_commit}</code>
+                        {s.cloud_as_of ? `, last confirmed ${s.cloud_as_of}` : ""}
+                      </div>
+                    )}
+                    {s.sync_state === "unverified" && (
+                      <div className="text-[10px] mt-1" style={{ color: "var(--muted)" }}>
+                        Cloud copy <b>unverified</b> — nobody has confirmed what TradingView is
+                        running. Repo is at <code>{s.repo_commit}</code>.
+                      </div>
+                    )}
                     {s.orphaned ? (
                       <div className="mt-1"><Pill text="orphaned study" color={WARN}
                             title={s.orphan_note ?? "Live on a pane with no library script behind it"} /></div>
