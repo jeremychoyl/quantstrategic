@@ -143,6 +143,27 @@ export default function PineCatalogue() {
   const [filter, setFilter] = useState<Filter>("all")
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>("asc")
+  /* Per-row state for the Delete button. "asked" is deliberately terminal — the
+     row does NOT disappear, because pressing the button changes nothing. It says
+     "check Telegram", and the row goes only after the approval and the next
+     publish. A button that hid the row optimistically would be claiming an
+     authority this page does not have. */
+  const [asked, setAsked] = useState<Record<string, string>>({})
+
+  const requestDelete = async (name: string) => {
+    setAsked(a => ({ ...a, [name]: "asking" }))
+    try {
+      const r = await fetch("/api/pine-delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ script: name }),
+      })
+      const j = await r.json().catch(() => ({}))
+      setAsked(a => ({ ...a, [name]: r.ok ? "sent" : (j?.error || "failed") }))
+    } catch {
+      setAsked(a => ({ ...a, [name]: "failed" }))
+    }
+  }
 
   useEffect(() => {
     let alive = true
@@ -299,6 +320,8 @@ export default function PineCatalogue() {
                   </th>
                 )
               })}
+              <th className="px-3 py-2 font-semibold text-right whitespace-nowrap"
+                  style={{ borderBottom: "1px solid var(--border)" }}>Remove</th>
             </tr>
           </thead>
           <tbody>
@@ -382,6 +405,23 @@ export default function PineCatalogue() {
                   <td className="px-3 py-2 text-right tabular-nums" style={{ color: "var(--muted)" }}>
                     {s.lines || "—"}
                   </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    {(() => {
+                      const name = s.tv_name ?? s.name
+                      const st = asked[name]
+                      if (st === "sent") return <span className="text-[10px]" style={{ color: ACCENT }}>check Telegram</span>
+                      if (st === "asking") return <span className="text-[10px]" style={{ color: "var(--muted)" }}>asking…</span>
+                      if (st) return <span className="text-[10px]" title={st} style={{ color: DOWN }}>{st}</span>
+                      return (
+                        <button type="button" onClick={() => requestDelete(name)}
+                                title="Asks for approval in Telegram. Nothing is removed until you tap Yes there."
+                                className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                                style={{ color: "var(--muted)", border: "1px solid var(--border)" }}>
+                          Remove
+                        </button>
+                      )
+                    })()}
+                  </td>
                 </tr>
               )
             })}
@@ -405,6 +445,7 @@ export default function PineCatalogue() {
         <b>An underlined filename marked ↗ links to its source</b> in the PineScripts repo, which is
         private — the link needs repo access to open, and a plain filename has no source there at all
         (local to one machine, or deleted).{" "}
+        <b>Remove asks, it does not act.</b> It sends a request to Telegram and the row stays until you approve it there and the next publish runs — this page has no login, so it cannot be allowed to remove anything on its own. Nothing is deleted either way: the row is hidden, the file is untouched, and TradingView is unchanged.{" "}
         <b>First tracked is not a creation date.</b> It is the day the file entered version control,
         and several scripts share one date because that is when the repo itself was created — the
         scripts are older. <b>No working file</b> means the script is recorded in the strategy log but
