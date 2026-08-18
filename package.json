@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "gen:history": "node scripts/gen-history.mjs",
+    "check:responsive": "node scripts/check-responsive.mjs",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {

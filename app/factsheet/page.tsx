@@ -196,6 +196,9 @@ export default function Factsheet() {
             {/* The book */}
             {p?.per_strategy && (
               <Card title="The book — 3 strategies" sub="16-year backtest · 1 MNQ each · all live">
+                {/* The only table left without a scroll container — it fits at
+                    390px but not at 320 (iPhone SE). */}
+                <div className="scroll-x">
                 <table className="w-full">
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--border)" }}>
@@ -217,6 +220,7 @@ export default function Factsheet() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </Card>
             )}
 
