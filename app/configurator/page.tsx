@@ -294,7 +294,7 @@ function ComboStats({ stats, capital }: { stats: ScaledStats; capital: number })
       </div>
 
       {/* risk profile — inverse rated (lower = better) */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <StatPill label="Up-day concentration" value={`${stats.concentration}%`}
                   rating={rateRisk("concentration", stats.concentration)} />
         <StatPill label="Max consec down days" value={`${stats.max_consec_down}`}

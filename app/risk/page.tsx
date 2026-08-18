@@ -50,7 +50,7 @@ function Tile({ label, value, caption, color }: {
 function StrategyRiskTable({ risk }: { risk: RiskBlock }) {
   return (
     <Card title="Per-Strategy Risk" sub="16-year backtest, ungated · MNQ 1 contract · daily P&L basis">
-      <div className="overflow-x-auto">
+      <div className="scroll-x">
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>

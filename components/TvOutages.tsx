@@ -128,7 +128,7 @@ export default function TvOutages() {
         )}
       </p>
 
-      <div className="rounded-xl overflow-x-auto" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="rounded-xl scroll-x" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ color: "var(--muted)" }}>

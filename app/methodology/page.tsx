@@ -96,7 +96,7 @@ export default function Methodology() {
               {rd.summary && (
                 <p className="text-sm mt-2 leading-relaxed" style={{ color: "var(--text2)" }}>{rd.summary}</p>
               )}
-              <div className="grid grid-cols-3 gap-3 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
                 <div>
                   <p className="text-2xl font-black tabular-nums" style={{ color: "var(--text)" }}>{totalRejected}</p>
                   <p className="text-[11px] uppercase tracking-wide" style={{ color: "var(--muted)" }}>ideas tested &amp; rejected</p>
@@ -174,7 +174,7 @@ export default function Methodology() {
             {rd.spend_ledger && (
               <Card title="Research spend ledger — the cost of knowing"
                     sub="Databento data purchases. A rejection is a deliverable: knowing an edge isn't there is worth paying for.">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div>
                     <p className="text-xl font-bold tabular-nums" style={{ color: "var(--text)" }}>${rd.spend_ledger.bars_usd.toLocaleString()}</p>
                     <p className="text-[11px] uppercase tracking-wide" style={{ color: "var(--muted)" }}>OHLCV bars</p>

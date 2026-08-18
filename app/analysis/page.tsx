@@ -84,7 +84,7 @@ export default function Analysis() {
             {/* Per-strategy stats */}
             {s16 && (
               <Card title="Per-strategy detail" sub="16-year backtest · trade basis">
-                <div className="overflow-x-auto">
+                <div className="scroll-x">
                   <table className="w-full">
                     <thead>
                       <tr style={{ borderBottom: "1px solid var(--border)" }}>

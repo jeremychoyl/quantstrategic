@@ -91,6 +91,59 @@ function TradeRow({ t }: { t: LiveTrade }) {
   )
 }
 
+// Phone view of the same trade. The table needs 900px for its ten columns, so
+// on a phone it was a card-wide horizontal scroll that also dragged the heading
+// and the A/B/C footnotes sideways. Every column survives here — the three that
+// answer "did this fill well" get the grid, the rest go inline.
+function TradeCard({ t }: { t: LiveTrade }) {
+  const slipColor = t.entry_slippage_pts <= 0 ? UP : DOWN // negative slip = favorable
+  const vsColor   = pnlColor(t.vs_expectancy_pts)
+
+  return (
+    <div className="rounded-lg p-3"
+         style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <span className="text-sm font-bold" style={{ color: "var(--text)" }}>{t.strategy}</span>
+          <span className="text-[11px] ml-2" style={{ color: MUTED }}>
+            {EXIT_LABELS[t.exit_type] ?? t.exit_type}
+          </span>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-sm font-bold tabular-nums" style={{ color: pnlColor(t.actual_pnl_pts) }}>
+            {fmt(t.actual_pnl_pts, true)} pts
+          </p>
+          <p className="text-[11px] tabular-nums" style={{ color: MUTED }}>
+            {fmt$(t.actual_pnl_usd, true)}
+          </p>
+        </div>
+      </div>
+
+      <p className="text-[11px] mb-2" style={{ color: MUTED }}>
+        {fmtDateTime(t.entry_time_sgt)} → {fmtDateTime(t.exit_time_sgt)} SGT
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { l: "Actual fill", v: t.entry_fill.toFixed(2),               c: "var(--text)" },
+          { l: "Slippage",    v: `${fmt(t.entry_slippage_pts, true)}`,  c: slipColor },
+          { l: "vs Expected", v: `${fmt(t.vs_expectancy_pts, true)}`,   c: vsColor },
+        ].map(x => (
+          <div key={x.l}>
+            <p className="text-[10px] uppercase tracking-wide" style={{ color: MUTED }}>{x.l}</p>
+            <p className="text-xs font-bold tabular-nums" style={{ color: x.c }}>{x.v}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[10px] mt-2 tabular-nums" style={{ color: MUTED }}>
+        Signal ref {t.entry_signal_ref.toFixed(2)} · backtest avg {fmt(t.backtest_exp_pts, true)} pts
+        ({fmt$(t.backtest_exp_usd, true)})
+      </p>
+    </div>
+  )
+}
+
 export default function Details() {
   const [data, setData]         = useState<DashboardData | null>(null)
   const [selectedWeek, setWeek] = useState<string>("all")
@@ -201,7 +254,9 @@ export default function Details() {
         </div>
 
         {/* Trade table */}
-        <div className="rounded-xl p-5 overflow-x-auto"
+        {/* The scroll lives on the table below, not on this card — otherwise the
+            heading and the A/B/C footnotes scroll sideways with it. */}
+        <div className="rounded-xl p-4 sm:p-5"
              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           <h2 className="text-sm font-bold mb-4">
             Trade log {selectedWeek !== "all" ? `· ${selectedWeek}` : ""}
@@ -215,25 +270,33 @@ export default function Details() {
               No completed live trades yet
             </p>
           ) : (
-            <table className="w-full text-left min-w-[900px]">
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  {[
-                    "Strategy", "Entry (SGT)", "Exit (SGT)", "Signal Ref",
-                    "Actual Fill", "Slippage (A)", "Actual P&L",
-                    "Backtest Avg (B)", "vs Expected (C)", "Exit",
-                  ].map(h => (
-                    <th key={h} className="pb-2 pr-3 text-xs font-semibold"
-                        style={{ color: MUTED }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {visibleTrades.map((t, i) => <TradeRow key={i} t={t} />)}
-              </tbody>
-            </table>
+            <>
+              <div className="hidden sm:block scroll-x">
+                <table className="w-full text-left min-w-[900px]">
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                      {[
+                        "Strategy", "Entry (SGT)", "Exit (SGT)", "Signal Ref",
+                        "Actual Fill", "Slippage (A)", "Actual P&L",
+                        "Backtest Avg (B)", "vs Expected (C)", "Exit",
+                      ].map(h => (
+                        <th key={h} className="pb-2 pr-3 text-xs font-semibold"
+                            style={{ color: MUTED }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleTrades.map((t, i) => <TradeRow key={i} t={t} />)}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="sm:hidden space-y-2">
+                {visibleTrades.map((t, i) => <TradeCard key={i} t={t} />)}
+              </div>
+            </>
           )}
 
           <div className="mt-4 pt-3 text-xs space-y-1" style={{ borderTop: "1px solid var(--border)", color: MUTED }}>

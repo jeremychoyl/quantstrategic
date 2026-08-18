@@ -30,7 +30,7 @@ export default function SeasonalityChart({ seasonality }: { seasonality?: Season
         Average return by calendar month · {span?.start?.slice(0, 4)}–{span?.end?.slice(0, 4)} NQ RTH · descriptive, not a signal
       </p>
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
         <Chip label="Most bullish" val={most_bullish.join(" · ")} color={UP} />
         <Chip label="Weakest" val={most_bearish[0]} color={DOWN} />
         <Chip label="Most volatile" val={most_volatile} color={MUTED} />

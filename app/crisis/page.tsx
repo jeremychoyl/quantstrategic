@@ -174,7 +174,7 @@ export default function CrisisPage() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Legs</span>
                 {LEGS.map(k => (
                   <button key={k} onClick={() => setLegOn(s => ({ ...s, [k]: !s[k] }))}
@@ -261,7 +261,7 @@ export default function CrisisPage() {
 
             {/* sortable table */}
             <Card title="Per-crisis ledger" sub={`${variant === "gated" ? "Live-tradeable (gate-open days only)" : "Raw backtest (all trades)"} · net & worst in-window drawdown, per 1 MNQ each leg. Click a header to sort.`}>
-              <div className="overflow-x-auto">
+              <div className="scroll-x">
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--border)" }}>

@@ -15,9 +15,93 @@
   --text2: #94a3b8;
 }
 
+html {
+  /* iOS Safari otherwise inflates body text when you rotate to landscape, which
+     desynchronises every hand-tuned tabular-nums column on the page. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: "Inter", "SF Pro Display", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Paired with viewportFit:"cover" in layout.tsx. Left/right only — the sticky
+     header handles the top and the page bottom handles its own. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* A wide table is allowed to scroll sideways; the PAGE never is. Anything that
+   breaches this is a bug to fix at the source, not to hide — but a stray
+   overflow on a phone breaks scrolling entirely, so this is the safety net. */
+body {
+  overflow-x: hidden;
+}
+
+/* ── Horizontal-scroll container for wide tables ────────────────────────────
+   Two jobs. (1) Momentum scrolling on iOS. (2) Discoverability: the shadow
+   gradients appear only on the side that still has hidden content, so a phone
+   user can see the table continues. Set --scroll-bg to the container's own
+   background or the fade shows the wrong colour. */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  --scroll-bg: var(--surface);
+  background:
+    linear-gradient(to right, var(--scroll-bg) 30%, rgba(0, 0, 0, 0)) left center / 36px 100% no-repeat local,
+    linear-gradient(to left, var(--scroll-bg) 30%, rgba(0, 0, 0, 0)) right center / 36px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0)) left center / 14px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0)) right center / 14px 100% no-repeat scroll;
+}
+
+/* Let a scrollable table use the full screen width on a phone instead of being
+   trapped inside the card's 16px padding — 32px is a whole extra column. */
+@media (max-width: 639px) {
+  .bleed-x {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Thin, visible scrollbar. On a phone it is the only static cue that a region
+   scrolls; the shadow above only helps once you have already moved. */
+.scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+.scroll-x::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.scroll-x::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Swing map row ──
+   The Med and Up columns are `hidden sm:block`, but hiding the SPAN does not
+   remove its grid TRACK — 82px of empty columns were still reserved on a phone,
+   which is what pushed the card past the viewport. The track list has to change
+   with the breakpoint too. `minmax(0, 1fr)` on the bar column so its min-content
+   width (the "← 700 pts · 0 · 700 pts →" header) cannot force the grid wider. */
+.swing-row {
+  grid-template-columns: 76px 40px minmax(0, 1fr) 40px;
+}
+@media (min-width: 640px) {
+  .swing-row {
+    grid-template-columns: 88px 44px minmax(0, 1fr) 44px 42px 40px;
+  }
+}
+
+/* 44px is the Apple HIG minimum and roughly Android's 48dp. Applied to the nav
+   and to anything else that is a real tap target rather than a text link.
+   Deliberately sets ONLY min-height: an earlier version also set
+   `display: flex`, which beat Tailwind's `sm:hidden` (equal specificity, and
+   this file is emitted after the Tailwind import) and left the phone hamburger
+   visible on desktop. Pair it with `flex items-center` at the call site. */
+.tap-target {
+  min-height: 44px;
 }

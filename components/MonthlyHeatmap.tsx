@@ -29,7 +29,7 @@ export default function MonthlyHeatmap({ monthly }: { monthly: MonthlyPoint[] })
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="scroll-x">
       <table className="border-collapse text-[10px]">
         <thead>
           <tr>
