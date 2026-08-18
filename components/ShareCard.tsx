@@ -23,39 +23,42 @@ export default function ShareCard({ data }: { data: DashboardData }) {
              onClick={() => setShow(false)}>
           <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl">
             {/* Card — screenshot this */}
+            {/* p-8 on a 390px phone left 294px of content for two text-5xl
+                dollar figures — they overflowed the card. The card is meant to
+                be screenshotted, so the desktop rendering is unchanged. */}
             <div id="share-card"
-                 className="rounded-2xl p-8"
+                 className="rounded-2xl p-5 sm:p-8"
                  style={{ background: "#0d1117", border: "1px solid #21262d", fontFamily: "system-ui" }}>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <p className="text-2xl font-black" style={{ color: "#00d4aa" }}>QuantStrategic</p>
+                  <p className="text-xl sm:text-2xl font-black" style={{ color: "#00d4aa" }}>QuantStrategic</p>
                   <p className="text-sm" style={{ color: "#6b7280" }}>MNQ Futures · Systematic · {data.bridge_mode.toUpperCase()}</p>
                 </div>
                 <p className="text-xs" style={{ color: "#6b7280" }}>{fmtDate(data.generated_at)}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="rounded-xl p-5" style={{ background: "#161b22" }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-5 sm:mb-6">
+                <div className="rounded-xl p-4 sm:p-5" style={{ background: "#161b22" }}>
                   <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#6b7280" }}>YTD 2026</p>
-                  <p className="text-5xl font-black" style={{ color: ytdUp ? "#00d4aa" : "#ff4d6d" }}>
+                  <p className="text-4xl sm:text-5xl font-black" style={{ color: ytdUp ? "#00d4aa" : "#ff4d6d" }}>
                     {fmtPct(r.ytd_pct)}
                   </p>
-                  <p className="text-xl font-bold mt-1" style={{ color: ytdUp ? "#00d4aa" : "#ff4d6d" }}>
+                  <p className="text-lg sm:text-xl font-bold mt-1" style={{ color: ytdUp ? "#00d4aa" : "#ff4d6d" }}>
                     {fmtUsd(r.ytd_usd)}
                   </p>
                 </div>
-                <div className="rounded-xl p-5" style={{ background: "#161b22" }}>
+                <div className="rounded-xl p-4 sm:p-5" style={{ background: "#161b22" }}>
                   <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#6b7280" }}>Last 5 Days</p>
-                  <p className="text-5xl font-black" style={{ color: r["5d_pts"] >= 0 ? "#00d4aa" : "#ff4d6d" }}>
+                  <p className="text-4xl sm:text-5xl font-black" style={{ color: r["5d_pts"] >= 0 ? "#00d4aa" : "#ff4d6d" }}>
                     {fmtUsd(r["5d_usd"])}
                   </p>
-                  <p className="text-xl font-bold mt-1" style={{ color: r["5d_pts"] >= 0 ? "#00d4aa" : "#ff4d6d" }}>
+                  <p className="text-lg sm:text-xl font-bold mt-1" style={{ color: r["5d_pts"] >= 0 ? "#00d4aa" : "#ff4d6d" }}>
                     {fmtPts(r["5d_pts"])}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
                   ["Profit Factor", s.pf.toFixed(2)],
                   ["Sharpe", s.sharpe.toFixed(2)],

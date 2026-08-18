@@ -26,9 +26,8 @@ function Row({ st, h, max, today }: { st: SwingState; h: string; max: number; to
   const riskPct = (d.mae_p80 / max) * 50
   return (
     <div
-      className="grid items-center gap-2 rounded-md px-2"
+      className="swing-row grid items-center gap-2 rounded-md px-2"
       style={{
-        gridTemplateColumns: "88px 44px 1fr 44px 42px 40px",
         height: 30,
         background: today ? "rgba(0,212,170,0.08)" : undefined,
       }}
@@ -66,11 +65,11 @@ export default function SwingMap({ swing, horizon }: { swing: SwingBlock; horizo
   )
   return (
     <div>
-      <div className="grid gap-2 px-2 text-[10px] font-semibold uppercase tracking-widest"
-           style={{ gridTemplateColumns: "88px 44px 1fr 44px 42px 40px", color: "var(--muted)" }}>
+      <div className="swing-row grid gap-2 px-2 text-[10px] font-semibold uppercase tracking-widest"
+           style={{ color: "var(--muted)" }}>
         <span>State</span>
         <span className="text-right">Risk</span>
-        <span className="text-center">← {max.toFixed(0)} pts · 0 · {max.toFixed(0)} pts →</span>
+        <span className="text-center truncate">← {max.toFixed(0)} pts · 0 · {max.toFixed(0)} pts →</span>
         <span>Room</span>
         <span className="text-right hidden sm:block">Med</span>
         <span className="text-right hidden sm:block">Up</span>

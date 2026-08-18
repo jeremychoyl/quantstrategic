@@ -178,7 +178,7 @@ export default function Factsheet() {
                 </p>
               </Card>
               <Card title="16-year backtest — deployed config" sub="1 contract each · 2010–2026 · gated by the live trailing-PF rule">
-                <div className="grid grid-cols-3 gap-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4">
                   <Stat label="Avg annual P&L" value={book ? fmt$(book.annual_usd, true) : "—"} color={UP} />
                   <Stat label="Sharpe" value={book ? book.sharpe.toFixed(2) : "—"} />
                   <Stat label="Sortino" value={b16 ? b16.sortino.toFixed(2) : "—"} />
@@ -237,7 +237,7 @@ export default function Factsheet() {
                 </p>
               </Card>
               <Card title="Research discipline" sub="Why the book is what it is">
-                <div className="grid grid-cols-3 gap-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4">
                   <Stat label="Validation gates" value={rd?.gates ? `${rd.gates.length}` : "6"} sub="all must pass" />
                   <Stat label="Ideas rejected" value={rd ? `${(rd.rejected_groups ? rd.rejected_groups.reduce((n, g) => n + g.items.length, 0) : rd.tested_rejected.length)}` : "—"} sub="tested to a verdict" />
                   <Stat label="Research spend" value={rd ? `$${rd.research_spend_usd.toLocaleString()}` : "—"} sub="the cost of knowing" />

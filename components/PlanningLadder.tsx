@@ -55,7 +55,7 @@ export default function PlanningLadder({ ladder }: { ladder: PL }) {
       </div>
 
       {/* Rung table */}
-      <div className="rounded-xl overflow-x-auto" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+      <div className="rounded-xl scroll-x" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <table className="w-full text-sm">
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--muted)" }}>

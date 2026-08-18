@@ -34,7 +34,7 @@ export default function CorrelationMatrix({ risk }: { risk: RiskBlock }) {
         This is the honest diversification read (the same method as the live /corr monitor).
       </p>
 
-      <div className="overflow-x-auto">
+      <div className="scroll-x">
         <table className="border-collapse">
           <thead>
             <tr>
