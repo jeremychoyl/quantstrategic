@@ -100,10 +100,49 @@ function Tile({ n, label, color, note }: { n: number | string; label: string; co
 
 type Filter = "all" | "strategy" | "indicator" | "divergent" | "nofile"
 
+/* Sorting. Each column declares how to READ its own value, so a column sorts by what
+   the cell actually shows rather than by a raw field that happens to be near it —
+   Status sorts on the rendered label, Home on shared/Mac-only, not on `machine`. */
+type SortDir = "asc" | "desc"
+const COLS: { label: string; key: string; num?: boolean; get: (s: Script) => string | number | null }[] = [
+  { label: "Script",        key: "name",   get: s => (s.tv_name ?? s.name).toLowerCase() },
+  { label: "Type",          key: "kind",   get: s => s.kind },
+  { label: "Status",        key: "status", get: s => (STATUS[s.live ? "live" : s.status] ?? STATUS.undocumented).label },
+  { label: "Panel",         key: "panel",  num: true, get: s => s.panel ?? null },
+  { label: "Home",          key: "home",   get: s => (s.machine ? home(s.machine) : null) },
+  { label: "First tracked", key: "first",  get: s => s.first_tracked || null },
+  { label: "Last change",   key: "last",   get: s => s.last_modified || null },
+  { label: "Lines",         key: "lines",  num: true, get: s => s.lines || null },
+]
+
+/* ⚠️ Blanks sort LAST in BOTH directions — the empty check returns before the
+   direction flip. Otherwise reversing any column parades every row with no panel,
+   no file or no date to the top, which is the opposite of what someone reversing a
+   sort is looking for, and 6 of 26 rows have at least one blank. */
+function sorted(list: Script[], key: string | null, dir: SortDir): Script[] {
+  if (!key) return list
+  const col = COLS.find(c => c.key === key)
+  if (!col) return list
+  return [...list].sort((a, b) => {          // copy: never sort the fetched array in place
+    const av = col.get(a), bv = col.get(b)
+    const ae = av === null || av === undefined || av === ""
+    const be = bv === null || bv === undefined || bv === ""
+    if (ae && be) return 0
+    if (ae) return 1
+    if (be) return -1
+    const r = col.num
+      ? Number(av) - Number(bv)
+      : String(av).localeCompare(String(bv))
+    return dir === "asc" ? r : -r
+  })
+}
+
 export default function PineCatalogue() {
   const [cat, setCat] = useState<Catalogue | null>(null)
   const [state, setState] = useState<"loading" | "ok" | "absent">("loading")
   const [filter, setFilter] = useState<Filter>("all")
+  const [sortKey, setSortKey] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
 
   useEffect(() => {
     let alive = true
@@ -120,14 +159,28 @@ export default function PineCatalogue() {
 
   const rows = useMemo(() => {
     if (!cat) return []
-    switch (filter) {
-      case "strategy":  return cat.scripts.filter(s => s.kind === "strategy")
-      case "indicator": return cat.scripts.filter(s => s.kind === "indicator")
-      case "divergent": return cat.scripts.filter(s => s.divergent)
-      case "nofile":    return cat.scripts.filter(s => !s.has_file)
-      default:          return cat.scripts
-    }
-  }, [cat, filter])
+    const f = (() => {
+      switch (filter) {
+        case "strategy":  return cat.scripts.filter(s => s.kind === "strategy")
+        case "indicator": return cat.scripts.filter(s => s.kind === "indicator")
+        case "divergent": return cat.scripts.filter(s => s.divergent)
+        case "nofile":    return cat.scripts.filter(s => !s.has_file)
+        default:          return cat.scripts
+      }
+    })()
+    // Sort applies WITHIN the current filter, not across it.
+    return sorted(f, sortKey, sortDir)
+  }, [cat, filter, sortKey, sortDir])
+
+  /* Three states per column: asc → desc → back to the published order. The third is
+     the point — the default (live first, then panel, then name) is curated and
+     genuinely useful, and without a way back you would have to reload the page to
+     recover it. */
+  const clickCol = (key: string) => {
+    if (sortKey !== key) { setSortKey(key); setSortDir("asc"); return }
+    if (sortDir === "asc") { setSortDir("desc"); return }
+    setSortKey(null); setSortDir("asc")
+  }
 
   if (state === "loading") {
     return <div className="rounded-xl p-5 animate-pulse" style={{ background: "var(--surface)", border: "1px solid var(--border)", height: 120 }} />
@@ -224,12 +277,28 @@ export default function PineCatalogue() {
         <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ color: "var(--muted)" }}>
-              {["Script", "Type", "Status", "Panel", "Home", "First tracked", "Last change", "Lines"].map((h, i) => (
-                <th key={h} className={`px-3 py-2 font-semibold whitespace-nowrap ${i > 2 ? "text-right" : "text-left"}`}
-                    style={{ borderBottom: "1px solid var(--border)" }}>
-                  {h}
-                </th>
-              ))}
+              {COLS.map((col, i) => {
+                const active = sortKey === col.key
+                return (
+                  <th key={col.key}
+                      aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+                      className={`px-3 py-2 font-semibold whitespace-nowrap ${i > 2 ? "text-right" : "text-left"}`}
+                      style={{ borderBottom: "1px solid var(--border)" }}>
+                    <button type="button" onClick={() => clickCol(col.key)}
+                            title={active
+                              ? (sortDir === "asc" ? "Sorted ascending — click for descending"
+                                                   : "Sorted descending — click to restore the default order")
+                              : `Sort by ${col.label}`}
+                            className="inline-flex items-center gap-1 hover:underline"
+                            style={{ color: active ? ACCENT : "inherit" }}>
+                      {col.label}
+                      <span aria-hidden="true" style={{ opacity: active ? 1 : 0.25 }}>
+                        {active ? (sortDir === "asc" ? "\u25b2" : "\u25bc") : "\u25b4"}
+                      </span>
+                    </button>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           <tbody>
