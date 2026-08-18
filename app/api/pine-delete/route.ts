@@ -52,6 +52,14 @@ export async function POST(req: Request) {
     if (r.status === 429) {
       return NextResponse.json({ ok: false, error: "too many requests just now — try again shortly" }, { status: 429 })
     }
+    if (r.status === 409) {
+      /* Already hidden. The page serves a snapshot that can be minutes old, so a
+         row the owner has already removed is still on screen and still clickable.
+         Saying "no such script" there reads as a broken button rather than as
+         "you already did this", which is what actually happened. */
+      return NextResponse.json({ ok: false, error: "already removed — this page is a few minutes behind" },
+                               { status: 409 })
+    }
     if (!r.ok) {
       // Never surface the upstream detail verbatim: it is written for the owner,
       // and this response is readable by anyone.
