@@ -150,7 +150,7 @@ export default function FeedStatus() {
           </p>
         </div>
         <button onClick={() => setShowLog(s => !s)}
-                className="px-2.5 py-1 rounded text-xs font-semibold"
+                className="px-2.5 py-1 rounded text-xs font-semibold min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                 style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text2)" }}>
           {showLog ? "Hide log" : `Log (${d.checks_logged})`}
         </button>

@@ -198,7 +198,7 @@ export default function Details() {
           {weeks.length > 0 && (
             <div className="flex gap-1.5 flex-wrap">
               <button onClick={() => setWeek("all")}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                       style={{
                         background: selectedWeek === "all" ? "var(--accent2)" : "var(--surface)",
                         color: selectedWeek === "all" ? "#fff" : "var(--text2)",
@@ -208,7 +208,7 @@ export default function Details() {
               </button>
               {weeks.map(w => (
                 <button key={w} onClick={() => setWeek(w)}
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium"
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                         style={{
                           background: selectedWeek === w ? "var(--accent2)" : "var(--surface)",
                           color: selectedWeek === w ? "#fff" : "var(--text2)",

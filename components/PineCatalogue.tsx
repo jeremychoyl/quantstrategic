@@ -397,7 +397,7 @@ export default function PineCatalogue() {
       <div className="flex gap-1.5 flex-wrap">
         {FILTERS.map(f => (
           <button key={f.k} onClick={() => setFilter(f.k)}
-                  className="px-2.5 py-1 rounded text-xs font-semibold transition-colors"
+                  className="px-2.5 py-1 rounded text-xs font-semibold transition-colors min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                   style={{
                     background: filter === f.k ? "var(--accent2)" : "var(--surface2)",
                     color: filter === f.k ? "#fff" : "var(--text2)",
@@ -446,7 +446,7 @@ export default function PineCatalogue() {
                               ? (sortDir === "asc" ? "Sorted ascending — click for descending"
                                                    : "Sorted descending — click to restore the default order")
                               : `Sort by ${col.label}`}
-                            className="inline-flex items-center gap-1 hover:underline"
+                            className="inline-flex items-center gap-1 hover:underline min-h-11 sm:min-h-0"
                             style={{ color: active ? ACCENT : "inherit" }}>
                       {col.label}
                       <span aria-hidden="true" style={{ opacity: active ? 1 : 0.25 }}>
@@ -504,7 +504,7 @@ export default function PineCatalogue() {
                       {s.github_url ? (
                         <a href={s.github_url} target="_blank" rel="noopener noreferrer"
                            title="Open the source in the PineScripts repo — private, so it needs repo access"
-                           className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 py-0.5"
+                           className="inline-flex items-center gap-1 underline decoration-dotted underline-offset-2 py-0.5 min-h-11 sm:min-h-0"
                            style={{ color: ACCENT, textDecorationColor: ACCENT }}>
                           {s.file}
                           <span aria-hidden="true" className="not-italic">↗</span>
@@ -575,7 +575,7 @@ export default function PineCatalogue() {
                       return (
                         <button type="button" onClick={() => requestDelete(name)}
                                 title="Asks for approval in Telegram. Nothing is removed until you tap Yes there."
-                                className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                                className="text-[10px] font-bold px-1.5 py-0.5 rounded min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                                 style={{ color: "var(--muted)", border: "1px solid var(--border)" }}>
                           Remove
                         </button>

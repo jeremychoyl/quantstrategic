@@ -448,12 +448,12 @@ function SizingCapital({ sizing }: { sizing?: Sizing }) {
           BOOK SIZING &amp; CAPITAL <span className="opacity-60">· 16y modeled</span>
         </p>
         <div className="flex gap-2">
-          <button onClick={setOptimal} className="px-3 py-1.5 rounded-lg text-xs font-bold"
+          <button onClick={setOptimal} className="px-3 py-1.5 rounded-lg text-xs font-bold min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                   style={{ background: "var(--accent2)", color: "#fff", border: "1px solid var(--accent2)" }}>
             Optimal
           </button>
           <button onClick={() => setCfg({ orb: 1, ema: 1, dc: 1 })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                   style={{ background: "var(--surface2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
             Reset
           </button>
@@ -562,7 +562,7 @@ export default function Configurator() {
               return (
                 <button key={v} onClick={() => !disabled && setView(v)}
                         disabled={disabled}
-                        className="px-4 py-1.5 rounded text-sm font-semibold transition-all"
+                        className="px-4 py-1.5 rounded text-sm font-semibold transition-all min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                         style={{
                           background: view === v ? "var(--accent2)" : "transparent",
                           color:      view === v ? "#fff" : disabled ? "var(--border)" : "var(--text2)",
@@ -589,7 +589,7 @@ export default function Configurator() {
                     const on = selected.has(key)
                     return (
                       <button key={key} onClick={() => toggle(key)}
-                              className="px-4 py-2 rounded-lg text-sm font-bold transition-all"
+                              className="px-4 py-2 rounded-lg text-sm font-bold transition-all min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                               style={{
                                 background: on ? "var(--accent2)" : "var(--surface2)",
                                 color:      on ? "#fff" : "var(--muted)",
@@ -600,7 +600,7 @@ export default function Configurator() {
                     )
                   })}
                   <button onClick={reset}
-                          className="px-3 py-2 rounded-lg text-xs font-semibold"
+                          className="px-3 py-2 rounded-lg text-xs font-semibold min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                           style={{ background: "var(--surface2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
                     Reset
                   </button>
@@ -633,7 +633,7 @@ export default function Configurator() {
                 <div>
                   <label className="text-xs font-semibold block mb-1" style={{ color: "var(--muted)" }}>Capital ($)</label>
                   <input value={capital} onChange={e => setCapital(e.target.value)}
-                         className="w-full rounded-lg px-3 py-2 text-sm font-mono"
+                         className="w-full rounded-lg px-3 py-2 text-sm font-mono min-h-11 sm:min-h-0"
                          style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)" }}
                          placeholder="25000" />
                 </div>
@@ -642,7 +642,7 @@ export default function Configurator() {
                   <div className="flex gap-1 flex-wrap">
                     {PERIODS.map(p => (
                       <button key={p} onClick={() => setPeriod(p)}
-                              className="px-2 py-1 rounded text-xs font-bold transition-colors"
+                              className="px-2 py-1 rounded text-xs font-bold transition-colors min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                               style={{
                                 background: period === p ? "var(--accent2)" : "var(--surface2)",
                                 color:      period === p ? "#fff"           : "var(--muted)",

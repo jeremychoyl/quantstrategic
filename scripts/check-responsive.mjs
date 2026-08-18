@@ -29,6 +29,7 @@
 //   npm run check:responsive -- --widths 390    # phone only
 //   npm run check:responsive -- --routes /,/risk
 //   npm run check:responsive -- --selftest --routes /   # prove the audit can fail
+//   npm run check:responsive -- --taps                  # tap targets under 44px
 //
 // Env: CHROME       path to the Chrome binary (default: macOS install location)
 //      BASE_URL     server to test (default: http://localhost:3111)
@@ -55,6 +56,7 @@ const arg = (name, fallback) => {
 const WIDTHS = arg("widths", "390,1280").split(",").map(Number)
 const SHOTS = arg("shots", null)
 const SELFTEST = process.argv.includes("--selftest")
+const TAPS = process.argv.includes("--taps")
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 // A CDP call against a page that has stopped responding (server died mid-sweep,
@@ -114,6 +116,30 @@ const AUDIT = `(() => {
   }
   return JSON.stringify({ vw, count: bad.length,
     bad: bad.slice(0, 10).map(({ tag, cls, left, right }) => ({ tag, cls, left, right })) })
+})()`
+
+
+// Tap-target audit (--taps). 44px is the Apple HIG minimum, ~48dp on Android;
+// 40 is the floor used here so a deliberately compact control is not flagged for
+// four pixels. An <input> inside a padded <label> is FINE — the label is the tap
+// target — so those are skipped rather than counted, which is the difference
+// between measuring the hit area and measuring the box.
+const TAP_AUDIT = `(() => {
+  const bad = []
+  for (const el of document.querySelectorAll('button, a[href], input, [role=button]')) {
+    const r = el.getBoundingClientRect()
+    if (r.width === 0 || r.height === 0) continue
+    const lab = el.closest('label')
+    if (lab) {
+      const lr = lab.getBoundingClientRect()
+      if (lr.height >= 40 && lr.width >= 40) continue
+    }
+    if (r.height >= 40) continue
+    bad.push({ tag: el.tagName, h: Math.round(r.height), w: Math.round(r.width),
+               cls: String(el.className || '').slice(0, 70),
+               txt: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 22) })
+  }
+  return JSON.stringify({ count: bad.length, bad: bad.slice(0, 10) })
 })()`
 
 class CDP {
@@ -201,7 +227,8 @@ async function main() {
           }
 
           const out = await withTimeout(
-            c.send("Runtime.evaluate", { expression: AUDIT, returnByValue: true }), 20000, `audit ${route}`)
+            c.send("Runtime.evaluate", { expression: TAPS ? TAP_AUDIT : AUDIT, returnByValue: true }),
+            20000, `audit ${route}`)
           const { count, bad } = JSON.parse(out.result.value)
 
           if (SHOTS) {
@@ -215,6 +242,12 @@ async function main() {
             const caught = count > 0
             console.log(`  ${caught ? "✓" : "✗"} ${route.padEnd(16)} probe ${caught ? "caught" : "MISSED — the audit is blind"}`)
             if (!caught) failures++
+          } else if (TAPS) {
+            console.log(`  ${count === 0 ? "✓" : "✗"} ${route.padEnd(16)} ${count} under 40px tall`)
+            if (count > 0) {
+              failures += count
+              for (const b of bad) console.log(`      <${b.tag}> ${b.w}×${b.h} "${b.txt}"  ${b.cls}`)
+            }
           } else {
             console.log(`  ${count === 0 ? "✓" : "✗"} ${route.padEnd(16)} ${count} overflowing`)
             if (count > 0) {
@@ -256,6 +289,10 @@ async function main() {
     console.log(failures === 0
       ? `\n✓ selftest passed — the audit detects a planted 3000px element`
       : `\n✗ selftest FAILED on ${failures} route(s) — the audit is not detecting overflow`)
+  } else if (TAPS) {
+    console.log(failures === 0
+      ? `\n✓ every tap target ≥40px — ${routes.length} routes`
+      : `\n✗ ${failures} tap target(s) under 40px`)
   } else {
     console.log(failures === 0
       ? `\n✓ no horizontal overflow — ${routes.length} routes × ${WIDTHS.length} widths`

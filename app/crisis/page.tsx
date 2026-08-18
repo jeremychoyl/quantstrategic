@@ -167,7 +167,7 @@ export default function CrisisPage() {
               <div className="inline-flex rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                 {(["gated", "ungated"] as const).map(v => (
                   <button key={v} onClick={() => setVariant(v)}
-                          className="px-3 py-1.5 text-xs font-semibold transition-colors"
+                          className="px-3 py-1.5 text-xs font-semibold transition-colors min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                           style={{ background: variant === v ? "var(--accent2)" : "transparent",
                                    color: variant === v ? "#fff" : "var(--text2)" }}>
                     {v === "gated" ? "Gated (live)" : "Ungated (raw)"}
@@ -178,7 +178,7 @@ export default function CrisisPage() {
                 <span className="text-[11px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Legs</span>
                 {LEGS.map(k => (
                   <button key={k} onClick={() => setLegOn(s => ({ ...s, [k]: !s[k] }))}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono transition-colors min-h-11 sm:min-h-0"
                           style={{ border: `1px solid ${legOn[k] ? C[k] : "var(--border)"}`,
                                    color: legOn[k] ? "var(--text)" : "var(--muted)",
                                    background: legOn[k] ? "var(--surface)" : "transparent" }}>

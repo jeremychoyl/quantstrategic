@@ -88,7 +88,7 @@ export default function Factsheet() {
             <div className="flex gap-1.5">
               {([["full", "Full"], ["marketing", "Marketing"]] as const).map(([v, label]) => (
                 <button key={v} onClick={() => setVariant(v)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all min-h-11 sm:min-h-0 inline-flex items-center justify-center"
                         style={{
                           background: variant === v ? "var(--accent2)" : "var(--surface)",
                           color:      variant === v ? "#fff" : "var(--text2)",
