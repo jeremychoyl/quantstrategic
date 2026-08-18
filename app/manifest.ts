@@ -11,7 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Systematic MNQ futures — live performance dashboard",
     start_url: "/",
     display: "standalone",
-    orientation: "portrait",
+    // Deliberately NOT orientation-locked. Portrait suits a glance, but the wide
+    // tables are readable in landscape and that is a real reason to rotate —
+    // Android honours a lock and would fight it. Let the device decide.
     background_color: "#0a0a0f",
     theme_color: "#0a0a0f",
     icons: [

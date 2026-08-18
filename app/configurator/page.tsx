@@ -319,17 +319,24 @@ function ContractStepper({ label, value, onChange }: {
   label: string; value: number; onChange: (n: number) => void
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg px-3 py-2"
+    // flex-wrap rather than another round of pixel-trimming: with 44px buttons
+    // this row genuinely does not fit 320px, and wrapping the trailing
+    // "contracts" onto a second line is the honest answer at that width.
+    <div className="flex flex-wrap items-center gap-2 rounded-lg px-3 py-2"
          style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
-      <span className="text-xs font-semibold min-w-[80px]" style={{ color: "var(--muted)" }}>{label}</span>
+      {/* The 80px floor keeps the three steppers' controls in a column. Dropping
+          it on mobile bought 320px fitment but left the rows visibly staggered;
+          flex-wrap above is the better answer, so the floor stays at every width. */}
+      <span className="text-xs font-semibold min-w-[80px] truncate"
+            style={{ color: "var(--muted)" }}>{label}</span>
       <button onClick={() => onChange(Math.max(1, value - 1))}
-              className="w-6 h-6 rounded flex items-center justify-center text-sm font-black"
+              className="w-11 h-11 sm:w-6 sm:h-6 rounded flex items-center justify-center text-base sm:text-sm font-black"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}>
         −
       </button>
       <span className="text-sm font-black w-4 text-center" style={{ color: "var(--text)" }}>{value}</span>
       <button onClick={() => onChange(Math.min(10, value + 1))}
-              className="w-6 h-6 rounded flex items-center justify-center text-sm font-black"
+              className="w-11 h-11 sm:w-6 sm:h-6 rounded flex items-center justify-center text-base sm:text-sm font-black"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}>
         +
       </button>
@@ -374,7 +381,7 @@ function usd0(v: number): string { return `$${Math.round(v).toLocaleString()}` }
 function Stepper0({ label, value, max, onChange }: {
   label: string; value: number; max: number; onChange: (n: number) => void
 }) {
-  const btn = "w-6 h-6 rounded flex items-center justify-center text-sm font-black"
+  const btn = "w-11 h-11 sm:w-6 sm:h-6 rounded flex items-center justify-center text-base sm:text-sm font-black"
   const bs  = { background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }
   return (
     <div className="flex items-center gap-2 rounded-lg px-3 py-2"

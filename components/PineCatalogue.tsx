@@ -469,9 +469,17 @@ export default function PineCatalogue() {
                   <td className="px-2 py-2 align-top">
                     {/* No tick on a row already gone — it cannot be requested again. */}
                     {!gone && (
-                      <input type="checkbox" aria-label={`Select ${s.tv_name ?? s.name}`}
-                             checked={picked.has(s.tv_name ?? s.name)}
-                             onChange={() => toggle(s.tv_name ?? s.name)} />
+                      // The <label> is the tap target, not the box. A bare native
+                      // checkbox is ~14px, and this one starts a REMOVAL request —
+                      // a fat-finger miss here costs more than an annoyance.
+                      // Clicking the label toggles the nested input for free.
+                      <label className="flex items-center justify-center -m-1 p-1 cursor-pointer"
+                             style={{ minWidth: 40, minHeight: 40 }}>
+                        <input type="checkbox" aria-label={`Select ${s.tv_name ?? s.name}`}
+                               className="w-4 h-4 cursor-pointer"
+                               checked={picked.has(s.tv_name ?? s.name)}
+                               onChange={() => toggle(s.tv_name ?? s.name)} />
+                      </label>
                     )}
                   </td>
                   <td className="px-3 py-2">
