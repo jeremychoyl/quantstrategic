@@ -2,6 +2,10 @@ import type { Metadata, Viewport } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
+  // Required for the OG image to resolve. Without it Next emits an absolute URL
+  // against http://localhost:3000, so every shared link previews a dead image —
+  // which is what it had been doing, alongside /og.png not existing at all.
+  metadataBase: new URL("https://app.gordongekko.uk"),
   title: "QuantStrategic",
   description: "Live command center — ORB + EMA MNQ strategies",
   applicationName: "QuantStrategic",
