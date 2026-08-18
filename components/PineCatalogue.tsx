@@ -40,6 +40,20 @@ const STATUS: Record<string, { c: string; label: string }> = {
   undocumented:    { c: "var(--muted)", label: "—" },
 }
 
+/* `machine` is the FOLDER a file was found in, not the machine it belongs to:
+   "win" = ~/PineScripts, which is the SHARED repo cloned on both machines, so 20 of
+   25 rows read "win" for files that live on both. That implied a location split
+   which does not exist. Displayed as shared / Mac-only instead — the one real
+   distinction, and the one that decides whether the Mac-only files should move into
+   the shared repo.
+
+   ⚠️ DISPLAY ONLY. The `machine` field itself is load-bearing: pine_inventory uses it
+   for the duplicate-pine_id assertion, which is what caught a duplicated Data Feed
+   source on 2026-08-18 and froze the catalogue until it was resolved. Renaming the
+   field would break that; renaming the label costs nothing. */
+const HOME: Record<string, string> = { win: "shared", mac: "Mac-only" }
+const home = (m?: string) => (m ? HOME[m] ?? m : "—")
+
 function Pill({ text, color, title }: { text: string; color: string; title?: string }) {
   return (
     <span title={title}
@@ -187,7 +201,7 @@ export default function PineCatalogue() {
         <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ color: "var(--muted)" }}>
-              {["Script", "Type", "Status", "Panel", "Where", "First tracked", "Last change", "Lines"].map((h, i) => (
+              {["Script", "Type", "Status", "Panel", "Home", "First tracked", "Last change", "Lines"].map((h, i) => (
                 <th key={h} className={`px-3 py-2 font-semibold whitespace-nowrap ${i > 2 ? "text-right" : "text-left"}`}
                     style={{ borderBottom: "1px solid var(--border)" }}>
                   {h}
@@ -250,7 +264,7 @@ export default function PineCatalogue() {
                     {s.divergent && s.also_on?.[0] && (
                       <div className="mt-1">
                         <Pill text="diverged" color={WARN}
-                              title={`Also on ${s.also_on[0].machine} as ${s.also_on[0].file} (${s.also_on[0].lines} lines, ${s.also_on[0].last_modified}) — different content`} />
+                              title={`Also on ${home(s.also_on[0].machine)} as ${s.also_on[0].file} (${s.also_on[0].lines} lines, ${s.also_on[0].last_modified}) — different content`} />
                       </div>
                     )}
                   </td>
@@ -262,7 +276,7 @@ export default function PineCatalogue() {
                     {s.panel ?? "unknown"}
                   </td>
                   <td className="px-3 py-2 text-right font-mono" style={{ color: "var(--muted)" }}>
-                    {s.machine || "—"}
+                    {home(s.machine)}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums" style={{ color: "var(--muted)" }}>
                     {s.first_tracked || "—"}
